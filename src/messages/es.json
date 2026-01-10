@@ -1,0 +1,50 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "error": "Se produjo un error",
+    "success": "Éxito",
+    "close": "Cerrar",
+    "open": "Abrir",
+    "menu": "Menú"
+  },
+  "nav": {
+    "products": "Productos",
+    "resources": "Recursos",
+    "contact": "Contacto",
+    "requestQuote": "Solicitar presupuesto",
+    "skipToContent": "Saltar al contenido principal"
+  },
+  "meta": {
+    "title": "Timber International",
+    "description": "Paneles de roble premium y productos de madera de bosques europeos sostenibles"
+  },
+  "home": {
+    "heroSlogan": "Del bosque al producto terminado",
+    "heroDescription": "Paneles de roble premium elaborados con experiencia tradicional y prácticas sostenibles, conectando bosques europeos con artesanos de todo el mundo.",
+    "journey": {
+      "forest": "Bosques sostenibles",
+      "forestDescription": "Obtenido responsablemente de bosques de roble europeos certificados",
+      "sawmill": "Artesanía experta",
+      "sawmillDescription": "Técnicas de aserrado tradicionales se encuentran con la precisión moderna",
+      "kilns": "Maestría paciente",
+      "kilnsDescription": "Cuidadosamente secado a la perfección con el tiempo"
+    }
+  },
+  "footer": {
+    "companyDescription": "Paneles de roble premium y productos de madera. Del bosque al producto terminado, entregamos soluciones de madera de calidad a profesionales exigentes en todo el mundo.",
+    "navigation": "Navegación",
+    "contactSection": "Contacto",
+    "copyright": "© {year} Timber International. Todos los derechos reservados.",
+    "privacy": "Política de privacidad",
+    "terms": "Términos de servicio"
+  },
+  "mobileMenu": {
+    "language": "Idioma",
+    "openMenu": "Abrir menú",
+    "closeMenu": "Cerrar menú"
+  },
+  "languageSwitcher": {
+    "label": "Seleccionar idioma",
+    "currentLanguage": "Idioma actual: {language}"
+  }
+}

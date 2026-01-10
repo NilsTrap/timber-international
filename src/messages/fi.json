@@ -1,0 +1,50 @@
+{
+  "common": {
+    "loading": "Ladataan...",
+    "error": "Tapahtui virhe",
+    "success": "Onnistui",
+    "close": "Sulje",
+    "open": "Avaa",
+    "menu": "Valikko"
+  },
+  "nav": {
+    "products": "Tuotteet",
+    "resources": "Resurssit",
+    "contact": "Yhteystiedot",
+    "requestQuote": "Pyydä tarjous",
+    "skipToContent": "Siirry pääsisältöön"
+  },
+  "meta": {
+    "title": "Timber International",
+    "description": "Laadukkaat tammipaneelit ja puutuotteet kestävistä eurooppalaisista metsistä"
+  },
+  "home": {
+    "heroSlogan": "Metsästä valmiiksi tuotteeksi",
+    "heroDescription": "Laadukkaat tammipaneelit, jotka on valmistettu perinteisellä ammattitaidolla ja kestävillä käytännöillä, yhdistäen eurooppalaiset metsät käsityöläisiin ympäri maailmaa.",
+    "journey": {
+      "forest": "Kestävät metsät",
+      "forestDescription": "Vastuullisesti hankittu sertifioiduista eurooppalaisista tammimetsistä",
+      "sawmill": "Taitava käsityö",
+      "sawmillDescription": "Perinteiset sahaustekniikat kohtaavat modernin tarkkuuden",
+      "kilns": "Kärsivällistä osaamista",
+      "kilnsDescription": "Huolellisesti kuivattu täydellisyyteen ajan kanssa"
+    }
+  },
+  "footer": {
+    "companyDescription": "Laadukkaat tammipaneelit ja puutuotteet. Metsästä valmiiksi tuotteeksi toimitamme laadukkaita puutoiminta-ratkaisuja vaativille ammattilaisille ympäri maailmaa.",
+    "navigation": "Navigointi",
+    "contactSection": "Yhteystiedot",
+    "copyright": "© {year} Timber International. Kaikki oikeudet pidätetään.",
+    "privacy": "Tietosuojakäytäntö",
+    "terms": "Käyttöehdot"
+  },
+  "mobileMenu": {
+    "language": "Kieli",
+    "openMenu": "Avaa valikko",
+    "closeMenu": "Sulje valikko"
+  },
+  "languageSwitcher": {
+    "label": "Valitse kieli",
+    "currentLanguage": "Nykyinen kieli: {language}"
+  }
+}

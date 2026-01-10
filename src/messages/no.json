@@ -1,0 +1,50 @@
+{
+  "common": {
+    "loading": "Laster...",
+    "error": "En feil oppstod",
+    "success": "Vellykket",
+    "close": "Lukk",
+    "open": "Åpne",
+    "menu": "Meny"
+  },
+  "nav": {
+    "products": "Produkter",
+    "resources": "Ressurser",
+    "contact": "Kontakt",
+    "requestQuote": "Be om tilbud",
+    "skipToContent": "Hopp til hovedinnhold"
+  },
+  "meta": {
+    "title": "Timber International",
+    "description": "Premium eikepaneler og treprodukter fra bærekraftige europeiske skoger"
+  },
+  "home": {
+    "heroSlogan": "Fra skog til ferdig produkt",
+    "heroDescription": "Premium eikepaneler laget med tradisjonell ekspertise og bærekraftige metoder, som forbinder europeiske skoger med håndverkere verden over.",
+    "journey": {
+      "forest": "Bærekraftige skoger",
+      "forestDescription": "Ansvarlig hentet fra sertifiserte europeiske eikeskoger",
+      "sawmill": "Dyktig håndverk",
+      "sawmillDescription": "Tradisjonelle sageteknikker møter moderne presisjon",
+      "kilns": "Tålmodig mestring",
+      "kilnsDescription": "Nøye tørket til perfeksjon over tid"
+    }
+  },
+  "footer": {
+    "companyDescription": "Premium eikepaneler og treprodukter. Fra skog til ferdig produkt leverer vi kvalitetstømmerløsninger til krevende fagfolk verden over.",
+    "navigation": "Navigasjon",
+    "contactSection": "Kontakt",
+    "copyright": "© {year} Timber International. Alle rettigheter forbeholdt.",
+    "privacy": "Personvernerklæring",
+    "terms": "Vilkår for bruk"
+  },
+  "mobileMenu": {
+    "language": "Språk",
+    "openMenu": "Åpne meny",
+    "closeMenu": "Lukk meny"
+  },
+  "languageSwitcher": {
+    "label": "Velg språk",
+    "currentLanguage": "Nåværende språk: {language}"
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "common": {
+    "loading": "Wird geladen...",
+    "error": "Ein Fehler ist aufgetreten",
+    "success": "Erfolgreich",
+    "close": "Schließen",
+    "open": "Öffnen",
+    "menu": "Menü"
+  },
+  "nav": {
+    "products": "Produkte",
+    "resources": "Ressourcen",
+    "contact": "Kontakt",
+    "requestQuote": "Angebot anfordern",
+    "skipToContent": "Zum Hauptinhalt springen"
+  },
+  "meta": {
+    "title": "Timber International",
+    "description": "Premium Eichenpaneele und Holzprodukte aus nachhaltigen europäischen Wäldern"
+  },
+  "home": {
+    "heroSlogan": "Vom Wald zum fertigen Produkt",
+    "heroDescription": "Premium Eichenpaneele, gefertigt mit traditioneller Expertise und nachhaltigen Praktiken, die europäische Wälder mit Handwerkern weltweit verbinden.",
+    "journey": {
+      "forest": "Nachhaltige Wälder",
+      "forestDescription": "Verantwortungsvoll aus zertifizierten europäischen Eichenwäldern bezogen",
+      "sawmill": "Gekonnte Handwerkskunst",
+      "sawmillDescription": "Traditionelle Sägetechniken treffen auf moderne Präzision",
+      "kilns": "Geduldige Meisterschaft",
+      "kilnsDescription": "Sorgfältig über Zeit zur Perfektion getrocknet"
+    }
+  },
+  "footer": {
+    "companyDescription": "Premium Eichenpaneele und Holzprodukte. Vom Wald zum fertigen Produkt liefern wir Qualitätsholzlösungen an anspruchsvolle Fachleute weltweit.",
+    "navigation": "Navigation",
+    "contactSection": "Kontakt",
+    "copyright": "© {year} Timber International. Alle Rechte vorbehalten.",
+    "privacy": "Datenschutzrichtlinie",
+    "terms": "Nutzungsbedingungen"
+  },
+  "mobileMenu": {
+    "language": "Sprache",
+    "openMenu": "Menü öffnen",
+    "closeMenu": "Menü schließen"
+  },
+  "languageSwitcher": {
+    "label": "Sprache auswählen",
+    "currentLanguage": "Aktuelle Sprache: {language}"
+  }
+}

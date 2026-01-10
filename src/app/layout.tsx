@@ -2,9 +2,6 @@ import type { Metadata } from "next";
 import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import { siteConfig } from "@/config/site";
-import { SkipLink } from "@/components/layout/SkipLink";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -35,16 +32,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html>
       <body
         className={`${playfair.variable} ${inter.variable} antialiased min-h-screen flex flex-col`}
       >
-        <SkipLink />
-        <Header />
-        <main id="main-content" className="flex-1 pt-16 md:pt-20">
-          {children}
-        </main>
-        <Footer />
+        {children}
       </body>
     </html>
   );

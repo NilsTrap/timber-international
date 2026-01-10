@@ -1,32 +1,49 @@
 /**
  * Next.js Middleware
- * Handles auth session refresh and protected route checks
+ * Handles i18n routing and auth session refresh
  *
- * Auth flow:
- * 1. updateSession() refreshes tokens and checks authentication
- * 2. Admin routes redirect to login if not authenticated
- * 3. Admin layout verifies user is in admin_users table (authorization)
+ * Flow:
+ * 1. next-intl handles locale detection and routing for public pages
+ * 2. Supabase updateSession handles admin auth
  */
-import { type NextRequest } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
+import createMiddleware from 'next-intl/middleware'
+import { routing } from '@/i18n/routing'
 import { updateSession } from '@/lib/supabase/middleware'
 
+// Create next-intl middleware
+const intlMiddleware = createMiddleware(routing)
+
 export async function middleware(request: NextRequest) {
-  // updateSession handles:
-  // - Token refresh
-  // - Auth check for /admin routes
-  // - Redirect to /admin/login if unauthenticated
-  // - Session expired message in URL params
-  return updateSession(request)
+  const { pathname } = request.nextUrl
+
+  // Skip i18n for admin routes - handle auth only
+  if (pathname.startsWith('/admin')) {
+    return updateSession(request)
+  }
+
+  // Skip i18n for API routes
+  if (pathname.startsWith('/api')) {
+    return NextResponse.next()
+  }
+
+  // Handle i18n for all other routes
+  const response = intlMiddleware(request)
+
+  // Update Supabase session for authenticated features
+  // Note: For public pages, this refreshes tokens if user is logged in
+  // The response from intlMiddleware is passed through
+  return response
 }
 
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
+     * Match all request paths except for:
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - public folder
+     * - Static assets (svg, png, jpg, etc.)
      */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],

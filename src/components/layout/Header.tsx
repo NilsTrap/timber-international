@@ -1,6 +1,7 @@
 "use client";
 
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
 import { siteConfig } from "@/config/site";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,8 @@ interface HeaderProps {
 }
 
 export function Header({ variant = "solid" }: HeaderProps) {
+  const t = useTranslations("nav");
+
   return (
     <header
       className={cn(
@@ -46,7 +49,7 @@ export function Header({ variant = "solid" }: HeaderProps) {
                   : "bg-forest-green text-white hover:bg-forest-green/90"
               )}
             >
-              <Link href="/quote">Request Quote</Link>
+              <Link href="/quote">{t("requestQuote")}</Link>
             </Button>
           </div>
 

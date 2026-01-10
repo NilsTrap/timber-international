@@ -1,0 +1,50 @@
+{
+  "common": {
+    "loading": "Laddar...",
+    "error": "Ett fel uppstod",
+    "success": "Lyckades",
+    "close": "Stäng",
+    "open": "Öppna",
+    "menu": "Meny"
+  },
+  "nav": {
+    "products": "Produkter",
+    "resources": "Resurser",
+    "contact": "Kontakt",
+    "requestQuote": "Begär offert",
+    "skipToContent": "Hoppa till huvudinnehåll"
+  },
+  "meta": {
+    "title": "Timber International",
+    "description": "Premiumekpaneler och träprodukter från hållbara europeiska skogar"
+  },
+  "home": {
+    "heroSlogan": "Från skog till färdig produkt",
+    "heroDescription": "Premiumekpaneler tillverkade med traditionell expertis och hållbara metoder, som förbinder europeiska skogar med hantverkare världen över.",
+    "journey": {
+      "forest": "Hållbara skogar",
+      "forestDescription": "Ansvarsfullt inköpt från certifierade europeiska ekskogar",
+      "sawmill": "Skickligt hantverk",
+      "sawmillDescription": "Traditionella sågtekniker möter modern precision",
+      "kilns": "Tålmodig mästerskap",
+      "kilnsDescription": "Noggrant torkat till perfektion över tid"
+    }
+  },
+  "footer": {
+    "companyDescription": "Premiumekpaneler och träprodukter. Från skog till färdig produkt levererar vi kvalitetstimmerlösningar till krävande yrkesmän världen över.",
+    "navigation": "Navigering",
+    "contactSection": "Kontakt",
+    "copyright": "© {year} Timber International. Alla rättigheter förbehållna.",
+    "privacy": "Integritetspolicy",
+    "terms": "Användarvillkor"
+  },
+  "mobileMenu": {
+    "language": "Språk",
+    "openMenu": "Öppna meny",
+    "closeMenu": "Stäng meny"
+  },
+  "languageSwitcher": {
+    "label": "Välj språk",
+    "currentLanguage": "Nuvarande språk: {language}"
+  }
+}

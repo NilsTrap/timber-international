@@ -1,0 +1,50 @@
+{
+  "common": {
+    "loading": "Laden...",
+    "error": "Er is een fout opgetreden",
+    "success": "Gelukt",
+    "close": "Sluiten",
+    "open": "Openen",
+    "menu": "Menu"
+  },
+  "nav": {
+    "products": "Producten",
+    "resources": "Bronnen",
+    "contact": "Contact",
+    "requestQuote": "Offerte aanvragen",
+    "skipToContent": "Ga naar hoofdinhoud"
+  },
+  "meta": {
+    "title": "Timber International",
+    "description": "Premium eiken panelen en houtproducten uit duurzame Europese bossen"
+  },
+  "home": {
+    "heroSlogan": "Van bos tot eindproduct",
+    "heroDescription": "Premium eiken panelen vervaardigd met traditionele expertise en duurzame praktijken, die Europese bossen verbinden met ambachtslieden wereldwijd.",
+    "journey": {
+      "forest": "Duurzame bossen",
+      "forestDescription": "Verantwoord ingekocht uit gecertificeerde Europese eikenbossen",
+      "sawmill": "Vakkundig ambacht",
+      "sawmillDescription": "Traditionele zaagtechnieken ontmoeten moderne precisie",
+      "kilns": "Geduldige meesterschap",
+      "kilnsDescription": "Zorgvuldig gedroogd tot perfectie in de loop van de tijd"
+    }
+  },
+  "footer": {
+    "companyDescription": "Premium eiken panelen en houtproducten. Van bos tot eindproduct leveren wij kwaliteitshoutoplossingen aan veeleisende professionals wereldwijd.",
+    "navigation": "Navigatie",
+    "contactSection": "Contact",
+    "copyright": "© {year} Timber International. Alle rechten voorbehouden.",
+    "privacy": "Privacybeleid",
+    "terms": "Servicevoorwaarden"
+  },
+  "mobileMenu": {
+    "language": "Taal",
+    "openMenu": "Menu openen",
+    "closeMenu": "Menu sluiten"
+  },
+  "languageSwitcher": {
+    "label": "Selecteer taal",
+    "currentLanguage": "Huidige taal: {language}"
+  }
+}

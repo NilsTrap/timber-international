@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/routing";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { siteConfig } from "@/config/site";
 import { Button } from "@/components/ui/button";
 import { Navigation } from "./Navigation";
 import { LanguageSwitcher } from "./LanguageSwitcher";
@@ -17,6 +19,7 @@ export function MobileMenu({ variant = "solid" }: MobileMenuProps) {
   const [isAnimating, setIsAnimating] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const t = useTranslations();
 
   const openMenu = useCallback(() => {
     setIsAnimating(true);
@@ -105,7 +108,7 @@ export function MobileMenu({ variant = "solid" }: MobileMenuProps) {
             ? "text-white hover:bg-white/10"
             : "text-charcoal hover:bg-charcoal/5"
         )}
-        aria-label="Open menu"
+        aria-label={t("mobileMenu.openMenu")}
         aria-expanded={isOpen}
         aria-controls="mobile-menu"
       >
@@ -133,7 +136,7 @@ export function MobileMenu({ variant = "solid" }: MobileMenuProps) {
               onClick={closeMenu}
               className="font-heading text-xl font-semibold text-charcoal"
             >
-              Timber International
+              {siteConfig.name}
             </Link>
             <button
               type="button"
@@ -143,7 +146,7 @@ export function MobileMenu({ variant = "solid" }: MobileMenuProps) {
                 "hover:bg-charcoal/5",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               )}
-              aria-label="Close menu"
+              aria-label={t("mobileMenu.closeMenu")}
             >
               <X className="h-6 w-6" aria-hidden="true" />
             </button>
@@ -161,7 +164,7 @@ export function MobileMenu({ variant = "solid" }: MobileMenuProps) {
             {/* Language Switcher */}
             <div className="mt-6 pt-6 border-t border-border">
               <p className="mb-3 text-sm font-medium text-muted-foreground">
-                Language
+                {t("mobileMenu.language")}
               </p>
               <LanguageSwitcher variant="solid" />
             </div>
@@ -174,7 +177,7 @@ export function MobileMenu({ variant = "solid" }: MobileMenuProps) {
                 size="lg"
               >
                 <Link href="/quote" onClick={closeMenu}>
-                  Request Quote
+                  {t("nav.requestQuote")}
                 </Link>
               </Button>
             </div>

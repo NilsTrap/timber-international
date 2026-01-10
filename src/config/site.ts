@@ -6,9 +6,9 @@ export const siteConfig = {
   defaultLocale: 'en',
   locales: ['en', 'fi', 'sv', 'no', 'da', 'nl', 'de', 'es'],
   navigation: [
-    { name: 'Products', href: '/products' },
-    { name: 'Resources', href: '/resources' },
-    { name: 'Contact', href: '/contact' },
+    { name: 'Products', href: '/products', key: 'products' },
+    { name: 'Resources', href: '/resources', key: 'resources' },
+    { name: 'Contact', href: '/contact', key: 'contact' },
   ],
 } as const;
 

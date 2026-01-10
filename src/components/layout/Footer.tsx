@@ -1,7 +1,11 @@
-import Link from "next/link";
+"use client";
+
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/routing";
 import { siteConfig } from "@/config/site";
 
 export function Footer() {
+  const t = useTranslations();
   const currentYear = new Date().getFullYear();
 
   return (
@@ -14,17 +18,18 @@ export function Footer() {
               href="/"
               className="inline-block font-heading text-2xl font-semibold"
             >
-              Timber International
+              {siteConfig.name}
             </Link>
             <p className="mt-4 max-w-md text-warm-cream/80">
-              Premium oak panels and wood products. From forest to finished product,
-              we deliver quality timber solutions for discerning professionals worldwide.
+              {t("footer.companyDescription")}
             </p>
           </div>
 
           {/* Navigation Links */}
           <div>
-            <h3 className="font-heading text-lg font-semibold">Navigation</h3>
+            <h3 className="font-heading text-lg font-semibold">
+              {t("footer.navigation")}
+            </h3>
             <nav aria-label="Footer navigation" className="mt-4">
               <ul className="space-y-3">
                 {siteConfig.navigation.map((item) => (
@@ -33,7 +38,7 @@ export function Footer() {
                       href={item.href}
                       className="text-warm-cream/80 transition-colors hover:text-warm-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-cream focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal rounded"
                     >
-                      {item.name}
+                      {t(`nav.${item.key}`)}
                     </Link>
                   </li>
                 ))}
@@ -42,7 +47,7 @@ export function Footer() {
                     href="/quote"
                     className="text-warm-cream/80 transition-colors hover:text-warm-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-cream focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal rounded"
                   >
-                    Request Quote
+                    {t("nav.requestQuote")}
                   </Link>
                 </li>
               </ul>
@@ -51,9 +56,11 @@ export function Footer() {
 
           {/* Contact Info */}
           <div>
-            <h3 className="font-heading text-lg font-semibold">Contact</h3>
+            <h3 className="font-heading text-lg font-semibold">
+              {t("footer.contactSection")}
+            </h3>
             <address className="mt-4 not-italic space-y-3 text-warm-cream/80">
-              <p>Timber International</p>
+              <p>{siteConfig.name}</p>
               <p>
                 <a
                   href="mailto:info@timber-international.com"
@@ -70,20 +77,20 @@ export function Footer() {
         <div className="mt-12 border-t border-warm-cream/20 pt-8">
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
             <p className="text-sm text-warm-cream/60">
-              &copy; {currentYear} {siteConfig.name}. All rights reserved.
+              {t("footer.copyright", { year: currentYear })}
             </p>
             <div className="flex gap-6 text-sm text-warm-cream/60">
               <Link
                 href="/privacy"
                 className="transition-colors hover:text-warm-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-cream focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal rounded"
               >
-                Privacy Policy
+                {t("footer.privacy")}
               </Link>
               <Link
                 href="/terms"
                 className="transition-colors hover:text-warm-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-cream focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal rounded"
               >
-                Terms of Service
+                {t("footer.terms")}
               </Link>
             </div>
           </div>

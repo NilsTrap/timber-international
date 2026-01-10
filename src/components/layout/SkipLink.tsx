@@ -1,8 +1,10 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
 interface SkipLinkProps {
   href?: string;
-  children?: React.ReactNode;
 }
 
 /**
@@ -10,10 +12,9 @@ interface SkipLinkProps {
  * Allows keyboard users to skip directly to main content.
  * Visually hidden until focused.
  */
-export function SkipLink({
-  href = "#main-content",
-  children = "Skip to main content",
-}: SkipLinkProps) {
+export function SkipLink({ href = "#main-content" }: SkipLinkProps) {
+  const t = useTranslations("nav");
+
   return (
     <a
       href={href}
@@ -27,7 +28,7 @@ export function SkipLink({
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-forest-green"
       )}
     >
-      {children}
+      {t("skipToContent")}
     </a>
   );
 }
