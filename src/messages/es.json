@@ -42,7 +42,8 @@
       "qualityControl": "Control de calidad",
       "qualityControlDescription": "Sin compromisos en calidad",
       "delivery": "Entrega",
-      "deliveryDescription": "Confianza y fiabilidad mundial"
+      "deliveryDescription": "Confianza y fiabilidad mundial",
+      "stageAlt": "Etapa de producción {number}: {name}"
     }
   },
   "footer": {

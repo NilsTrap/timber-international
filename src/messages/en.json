@@ -42,7 +42,8 @@
       "qualityControl": "Quality Control",
       "qualityControlDescription": "Zero compromise on quality",
       "delivery": "Delivery",
-      "deliveryDescription": "Trust and reliability worldwide"
+      "deliveryDescription": "Trust and reliability worldwide",
+      "stageAlt": "Production stage {number}: {name}"
     }
   },
   "footer": {

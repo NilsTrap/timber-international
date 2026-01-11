@@ -42,7 +42,8 @@
       "qualityControl": "Kwaliteitscontrole",
       "qualityControlDescription": "Geen compromissen op kwaliteit",
       "delivery": "Levering",
-      "deliveryDescription": "Vertrouwen en betrouwbaarheid wereldwijd"
+      "deliveryDescription": "Vertrouwen en betrouwbaarheid wereldwijd",
+      "stageAlt": "Productiefase {number}: {name}"
     }
   },
   "footer": {

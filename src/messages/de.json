@@ -42,7 +42,8 @@
       "qualityControl": "Qualitätskontrolle",
       "qualityControlDescription": "Keine Kompromisse bei Qualität",
       "delivery": "Lieferung",
-      "deliveryDescription": "Vertrauen und Zuverlässigkeit weltweit"
+      "deliveryDescription": "Vertrauen und Zuverlässigkeit weltweit",
+      "stageAlt": "Produktionsstufe {number}: {name}"
     }
   },
   "footer": {

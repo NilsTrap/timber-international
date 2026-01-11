@@ -42,7 +42,8 @@
       "qualityControl": "Kvalitetskontroll",
       "qualityControlDescription": "Inga kompromisser på kvalitet",
       "delivery": "Leverans",
-      "deliveryDescription": "Förtroende och pålitlighet världen över"
+      "deliveryDescription": "Förtroende och pålitlighet världen över",
+      "stageAlt": "Produktionssteg {number}: {name}"
     }
   },
   "footer": {

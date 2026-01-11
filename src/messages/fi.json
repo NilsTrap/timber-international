@@ -42,7 +42,8 @@
       "qualityControl": "Laadunvalvonta",
       "qualityControlDescription": "Ei kompromisseja laadusta",
       "delivery": "Toimitus",
-      "deliveryDescription": "Luottamus ja luotettavuus maailmanlaajuisesti"
+      "deliveryDescription": "Luottamus ja luotettavuus maailmanlaajuisesti",
+      "stageAlt": "Tuotantovaihe {number}: {name}"
     }
   },
   "footer": {

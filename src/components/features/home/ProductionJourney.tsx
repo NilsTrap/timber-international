@@ -4,21 +4,10 @@ import { useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { useJourneyProgress } from "@/hooks/useJourneyProgress";
 import { JourneyProgressIndicator } from "./JourneyProgressIndicator";
+import { JourneyStage } from "./JourneyStage";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 
-// Placeholder colors for each stage - will be replaced by actual stage content in Story 2-3
-const STAGE_COLORS = [
-  "bg-[#1B4332]", // Forest - forest-500
-  "bg-amber-700", // Sawmill
-  "bg-orange-600", // Kilns
-  "bg-[#8B5A2B]", // Elements/Panels - oak-500
-  "bg-slate-600", // CNC
-  "bg-emerald-600", // Finishing
-  "bg-blue-600", // Quality Control
-  "bg-green-700", // Delivery
-];
-
-// Translation keys for stage names
+// Translation keys for stage names (matches i18n keys in messages/*.json)
 const STAGE_KEYS = [
   "forest",
   "sawmill",
@@ -89,21 +78,20 @@ export function ProductionJourney() {
         onStageClick={scrollToStage}
       />
 
-      {/* Placeholder stage sections - will be replaced by JourneyStage components in Story 2-3 */}
-      {Array.from({ length: 8 }, (_, i) => (
-        <div
+      {/* Journey stages with full-screen backgrounds */}
+      {STAGE_KEYS.map((stageKey, i) => (
+        <JourneyStage
           key={i + 1}
-          data-stage={i + 1}
-          id={`stage-${i + 1}`}
-          className={`h-screen w-full flex flex-col items-center justify-center snap-start snap-always ${STAGE_COLORS[i]}`}
-        >
-          <span className="text-white/60 text-lg mb-4">
-            {t("journey.stageOf", { current: i + 1, total: 8 })}
-          </span>
-          <h2 className="text-4xl md:text-6xl lg:text-7xl text-white font-heading font-bold text-center">
-            {t(`journey.${STAGE_KEYS[i]}`)}
-          </h2>
-        </div>
+          stageNumber={i + 1}
+          imageFallback={`/images/journey/${stageKey}.svg`}
+          headline={t(`journey.${stageKey}`)}
+          subtext={t(`journey.${stageKey}Description`)}
+          altText={t("journey.stageAlt", {
+            number: i + 1,
+            name: t(`journey.${stageKey}`),
+          })}
+          priority={i === 0}
+        />
       ))}
     </section>
   );
