@@ -22,13 +22,27 @@
     "heroSlogan": "From Forest to Finished Product",
     "heroDescription": "Premium oak panels crafted with traditional expertise and sustainable practices, connecting European forests to craftsmen worldwide.",
     "scrollToExplore": "Scroll to explore",
+    "journeyProgress": "{current} of {total}",
     "journey": {
+      "progressNavigation": "Journey progress",
+      "stageOf": "Stage {current} of {total}",
+      "goToStage": "Go to stage {number}",
       "forest": "Sustainable Forests",
       "forestDescription": "Responsibly sourced from certified European oak forests",
       "sawmill": "Skilled Craftsmanship",
       "sawmillDescription": "Traditional milling techniques meet modern precision",
       "kilns": "Patient Mastery",
-      "kilnsDescription": "Carefully dried to perfection over time"
+      "kilnsDescription": "Carefully dried to perfection over time",
+      "elements": "Elements & Panels",
+      "elementsDescription": "Human touch in manual selection",
+      "cnc": "CNC Precision",
+      "cncDescription": "Craft meets technology",
+      "finishing": "Finishing",
+      "finishingDescription": "Sustainable finishes applied with care",
+      "qualityControl": "Quality Control",
+      "qualityControlDescription": "Zero compromise on quality",
+      "delivery": "Delivery",
+      "deliveryDescription": "Trust and reliability worldwide"
     }
   },
   "footer": {

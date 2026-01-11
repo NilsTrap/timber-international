@@ -22,13 +22,27 @@
     "heroSlogan": "Från skog till färdig produkt",
     "heroDescription": "Premiumekpaneler tillverkade med traditionell expertis och hållbara metoder, som förbinder europeiska skogar med hantverkare världen över.",
     "scrollToExplore": "Scrolla för att utforska",
+    "journeyProgress": "{current} av {total}",
     "journey": {
+      "progressNavigation": "Resans framsteg",
+      "stageOf": "Steg {current} av {total}",
+      "goToStage": "Gå till steg {number}",
       "forest": "Hållbara skogar",
       "forestDescription": "Ansvarsfullt inköpt från certifierade europeiska ekskogar",
       "sawmill": "Skickligt hantverk",
       "sawmillDescription": "Traditionella sågtekniker möter modern precision",
       "kilns": "Tålmodig mästerskap",
-      "kilnsDescription": "Noggrant torkat till perfektion över tid"
+      "kilnsDescription": "Noggrant torkat till perfektion över tid",
+      "elements": "Element & paneler",
+      "elementsDescription": "Mänsklig beröring vid manuellt urval",
+      "cnc": "CNC-precision",
+      "cncDescription": "Hantverk möter teknologi",
+      "finishing": "Ytbehandling",
+      "finishingDescription": "Hållbara ytbehandlingar applicerade med omsorg",
+      "qualityControl": "Kvalitetskontroll",
+      "qualityControlDescription": "Inga kompromisser på kvalitet",
+      "delivery": "Leverans",
+      "deliveryDescription": "Förtroende och pålitlighet världen över"
     }
   },
   "footer": {

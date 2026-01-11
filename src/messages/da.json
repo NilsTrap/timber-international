@@ -22,13 +22,27 @@
     "heroSlogan": "Fra skov til færdigt produkt",
     "heroDescription": "Premium egepaneler fremstillet med traditionel ekspertise og bæredygtige metoder, der forbinder europæiske skove med håndværkere verden over.",
     "scrollToExplore": "Rul for at udforske",
+    "journeyProgress": "{current} af {total}",
     "journey": {
+      "progressNavigation": "Rejsens fremskridt",
+      "stageOf": "Etape {current} af {total}",
+      "goToStage": "Gå til etape {number}",
       "forest": "Bæredygtige skove",
       "forestDescription": "Ansvarligt indkøbt fra certificerede europæiske egeskove",
       "sawmill": "Dygtig håndværk",
       "sawmillDescription": "Traditionelle saveteknikker møder moderne præcision",
       "kilns": "Tålmodig mestring",
-      "kilnsDescription": "Omhyggeligt tørret til perfektion over tid"
+      "kilnsDescription": "Omhyggeligt tørret til perfektion over tid",
+      "elements": "Elementer og paneler",
+      "elementsDescription": "Menneskelig berøring i manuel udvælgelse",
+      "cnc": "CNC-præcision",
+      "cncDescription": "Håndværk møder teknologi",
+      "finishing": "Finishing",
+      "finishingDescription": "Bæredygtige finish påført med omhu",
+      "qualityControl": "Kvalitetskontrol",
+      "qualityControlDescription": "Nul kompromis på kvalitet",
+      "delivery": "Levering",
+      "deliveryDescription": "Tillid og pålidelighed verden over"
     }
   },
   "footer": {

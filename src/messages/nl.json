@@ -22,13 +22,27 @@
     "heroSlogan": "Van bos tot eindproduct",
     "heroDescription": "Premium eiken panelen vervaardigd met traditionele expertise en duurzame praktijken, die Europese bossen verbinden met ambachtslieden wereldwijd.",
     "scrollToExplore": "Scroll om te ontdekken",
+    "journeyProgress": "{current} van {total}",
     "journey": {
+      "progressNavigation": "Reisvoortgang",
+      "stageOf": "Fase {current} van {total}",
+      "goToStage": "Ga naar fase {number}",
       "forest": "Duurzame bossen",
       "forestDescription": "Verantwoord ingekocht uit gecertificeerde Europese eikenbossen",
       "sawmill": "Vakkundig ambacht",
       "sawmillDescription": "Traditionele zaagtechnieken ontmoeten moderne precisie",
       "kilns": "Geduldige meesterschap",
-      "kilnsDescription": "Zorgvuldig gedroogd tot perfectie in de loop van de tijd"
+      "kilnsDescription": "Zorgvuldig gedroogd tot perfectie in de loop van de tijd",
+      "elements": "Elementen & panelen",
+      "elementsDescription": "Menselijke aanraking bij handmatige selectie",
+      "cnc": "CNC-precisie",
+      "cncDescription": "Vakmanschap ontmoet technologie",
+      "finishing": "Afwerking",
+      "finishingDescription": "Duurzame afwerkingen zorgvuldig aangebracht",
+      "qualityControl": "Kwaliteitscontrole",
+      "qualityControlDescription": "Geen compromissen op kwaliteit",
+      "delivery": "Levering",
+      "deliveryDescription": "Vertrouwen en betrouwbaarheid wereldwijd"
     }
   },
   "footer": {

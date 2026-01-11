@@ -22,13 +22,27 @@
     "heroSlogan": "Fra skog til ferdig produkt",
     "heroDescription": "Premium eikepaneler laget med tradisjonell ekspertise og bærekraftige metoder, som forbinder europeiske skoger med håndverkere verden over.",
     "scrollToExplore": "Rull for å utforske",
+    "journeyProgress": "{current} av {total}",
     "journey": {
+      "progressNavigation": "Reisens fremgang",
+      "stageOf": "Steg {current} av {total}",
+      "goToStage": "Gå til steg {number}",
       "forest": "Bærekraftige skoger",
       "forestDescription": "Ansvarlig hentet fra sertifiserte europeiske eikeskoger",
       "sawmill": "Dyktig håndverk",
       "sawmillDescription": "Tradisjonelle sageteknikker møter moderne presisjon",
       "kilns": "Tålmodig mestring",
-      "kilnsDescription": "Nøye tørket til perfeksjon over tid"
+      "kilnsDescription": "Nøye tørket til perfeksjon over tid",
+      "elements": "Elementer og paneler",
+      "elementsDescription": "Menneskelig berøring i manuelt utvalg",
+      "cnc": "CNC-presisjon",
+      "cncDescription": "Håndverk møter teknologi",
+      "finishing": "Etterbehandling",
+      "finishingDescription": "Bærekraftige overflater påført med omhu",
+      "qualityControl": "Kvalitetskontroll",
+      "qualityControlDescription": "Ingen kompromiss på kvalitet",
+      "delivery": "Levering",
+      "deliveryDescription": "Tillit og pålitelighet over hele verden"
     }
   },
   "footer": {

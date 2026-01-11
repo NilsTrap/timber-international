@@ -10,6 +10,7 @@ import { Navigation } from "./Navigation";
 import { MobileMenu } from "./MobileMenu";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useScrolledPastHero } from "@/hooks/useScrolledPastHero";
+import { useScrollDirection } from "@/hooks/useScrollDirection";
 
 interface HeaderProps {
   variant?: "transparent" | "solid";
@@ -19,6 +20,7 @@ export function Header({ variant: propVariant }: HeaderProps) {
   const t = useTranslations("nav");
   const pathname = usePathname();
   const scrolledPast = useScrolledPastHero();
+  const scrollDirection = useScrollDirection();
 
   // On homepage, start with transparent and switch to solid after scrolling
   const isHomepage = pathname === "/";
@@ -28,13 +30,17 @@ export function Header({ variant: propVariant }: HeaderProps) {
       : "transparent"
     : propVariant || "solid";
 
+  // Hide navigation when scrolling down past the hero (for immersive journey experience)
+  const shouldHideNav = isHomepage && scrolledPast && scrollDirection === "down";
+
   return (
     <header
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-colors duration-300",
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
         variant === "transparent"
           ? "bg-transparent text-white"
-          : "bg-warm-cream text-charcoal border-b border-border"
+          : "bg-warm-cream text-charcoal border-b border-border",
+        shouldHideNav && "opacity-0 pointer-events-none"
       )}
     >
       <div className="container mx-auto px-4">
