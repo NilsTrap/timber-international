@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a **BMad Method Framework** installation (v6.0.0-alpha.22) for the **Timber International** website project. BMad (Business Model Architecture Development) is an AI-assisted product development methodology with specialized agents and structured workflows.
 
-**Current project status:** Planning phase - Product Brief completed, progressing toward PRD and Architecture.
+**Current project status:** Implementation phase - Epic 1 (Foundation) complete, Epic 2 (Homepage & Journey) in progress with Stories 2-1 and 2-2 done.
 
 ## Directory Structure
 
