@@ -54,8 +54,9 @@ development_status:
   2-1-build-homepage-hero-section: done
   2-2-create-production-journey-scroll-container: done
   2-3-implement-journeystage-component: done
-  2-4-populate-8-production-journey-stages: backlog
+  2-4-populate-8-production-journey-stages: done
   2-5-add-journey-completion-ctas: backlog
+  2-6-implement-horizontal-gallery-for-journey-stages: ready-for-dev
   epic-2-retrospective: optional
 
   # Epic 3: Product Catalog & Discovery
