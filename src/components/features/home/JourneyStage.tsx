@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { HorizontalGallery, type GalleryImage } from "./HorizontalGallery";
 
 /**
  * Props for the JourneyStage component
@@ -16,6 +17,8 @@ type JourneyStageProps = {
   videoSrcMp4?: string;
   /** Required path to fallback image */
   imageFallback: string;
+  /** Optional additional gallery images (renders HorizontalGallery when provided) */
+  galleryImages?: GalleryImage[];
   /** Translated headline text */
   headline: string;
   /** Translated expertise/description text */
@@ -43,6 +46,7 @@ export function JourneyStage({
   videoSrc,
   videoSrcMp4,
   imageFallback,
+  galleryImages,
   headline,
   subtext,
   altText,
@@ -75,8 +79,16 @@ export function JourneyStage({
     return () => observer.disconnect();
   }, []);
 
-  // Show video only if: videoSrc provided, not reduced motion, no error
-  const showVideo = videoSrc && !reducedMotion && !videoError;
+  // Show video only if: videoSrc provided, not reduced motion, no error, and no gallery.
+  // Priority order: Gallery > Video > Image. When gallery images exist, video is disabled
+  // to avoid conflicting interactive media. Users swipe through gallery instead of watching video.
+  const showVideo = videoSrc && !reducedMotion && !videoError && !galleryImages;
+
+  // Build gallery images array: primary image + additional gallery images
+  const allGalleryImages: GalleryImage[] = galleryImages
+    ? [{ src: imageFallback, alt: altText }, ...galleryImages]
+    : [];
+  const showGallery = allGalleryImages.length > 1;
 
   return (
     <div
@@ -87,7 +99,13 @@ export function JourneyStage({
     >
       {/* Background Media Layer */}
       <div className="absolute inset-0">
-        {showVideo ? (
+        {showGallery ? (
+          <HorizontalGallery
+            images={allGalleryImages}
+            galleryLabel={`${headline} gallery`}
+            showCounter={true}
+          />
+        ) : showVideo ? (
           <video
             autoPlay
             muted

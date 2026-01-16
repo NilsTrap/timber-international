@@ -7,6 +7,7 @@ import { JourneyProgressIndicator } from "./JourneyProgressIndicator";
 import { JourneyStage } from "./JourneyStage";
 import { JourneyCompletionCTA } from "./JourneyCompletionCTA";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import type { GalleryImage } from "./HorizontalGallery";
 
 // Translation keys for stage names (matches i18n keys in messages/*.json)
 const STAGE_KEYS = [
@@ -19,6 +20,31 @@ const STAGE_KEYS = [
   "qualityControl",
   "delivery",
 ] as const;
+
+// Gallery images for stages that have multiple images
+// Stages with galleries: Sawmill (2), Elements (4), CNC (5), Finishing (6)
+const STAGE_GALLERY_IMAGES: Record<string, GalleryImage[]> = {
+  sawmill: [
+    { src: "https://placehold.co/1920x1080/8B4513/FFFFFF?text=Sawmill+2", alt: "Sawmill cutting operation" },
+    { src: "https://placehold.co/1920x1080/8B4513/FFFFFF?text=Sawmill+3", alt: "Sawmill machinery" },
+    { src: "https://placehold.co/1920x1080/8B4513/FFFFFF?text=Sawmill+4", alt: "Sawmill precision cutting" },
+  ],
+  elements: [
+    { src: "https://placehold.co/1920x1080/DEB887/333333?text=Elements+2", alt: "Panel selection process" },
+    { src: "https://placehold.co/1920x1080/DEB887/333333?text=Elements+3", alt: "Color sorting elements" },
+    { src: "https://placehold.co/1920x1080/DEB887/333333?text=Elements+4", alt: "Quality inspection" },
+  ],
+  cnc: [
+    { src: "https://placehold.co/1920x1080/4A4A4A/FFFFFF?text=CNC+2", alt: "CNC milling operation" },
+    { src: "https://placehold.co/1920x1080/4A4A4A/FFFFFF?text=CNC+3", alt: "CNC precision routing" },
+    { src: "https://placehold.co/1920x1080/4A4A4A/FFFFFF?text=CNC+4", alt: "CNC finished piece" },
+  ],
+  finishing: [
+    { src: "https://placehold.co/1920x1080/CD853F/FFFFFF?text=Finishing+2", alt: "Varnishing process" },
+    { src: "https://placehold.co/1920x1080/CD853F/FFFFFF?text=Finishing+3", alt: "Waxing application" },
+    { src: "https://placehold.co/1920x1080/CD853F/FFFFFF?text=Finishing+4", alt: "Final polish" },
+  ],
+};
 
 /**
  * Production Journey scroll container with 8 full-screen stages.
@@ -88,6 +114,7 @@ export function ProductionJourney() {
           key={i + 1}
           stageNumber={i + 1}
           imageFallback={`/images/journey/${stageKey}.jpg`}
+          galleryImages={STAGE_GALLERY_IMAGES[stageKey]}
           headline={t(`journey.${stageKey}`)}
           subtext={t(`journey.${stageKey}Description`)}
           altText={t("journey.stageAlt", {

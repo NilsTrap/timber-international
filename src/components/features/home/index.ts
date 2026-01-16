@@ -5,3 +5,5 @@ export { ProductionJourneyWithErrorBoundary } from "./ProductionJourneyWithError
 export { JourneyProgressIndicator } from "./JourneyProgressIndicator";
 export { JourneyStage } from "./JourneyStage";
 export { JourneyCompletionCTA } from "./JourneyCompletionCTA";
+export { HorizontalGallery } from "./HorizontalGallery";
+export type { GalleryImage } from "./HorizontalGallery";
