@@ -52,15 +52,20 @@ export function HorizontalGallery({
   const wheelTimeout = useRef<NodeJS.Timeout | null>(null);
 
   // Add non-passive event listeners for wheel and touchmove to enable preventDefault
+  // Use capture phase to intercept before browser processes the gesture
   useEffect(() => {
     const element = galleryRef.current;
     if (!element) return;
 
     const handleWheelNative = (e: WheelEvent) => {
+      // Check if event is within our gallery
+      if (!element.contains(e.target as Node)) return;
+
       // Always prevent horizontal scrolling to stop browser back/forward gesture
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
         e.preventDefault();
         e.stopPropagation();
+        e.stopImmediatePropagation();
 
         // Only navigate if threshold met and not debounced
         if (Math.abs(e.deltaX) > 20 && !wheelTimeout.current) {
@@ -78,23 +83,26 @@ export function HorizontalGallery({
     };
 
     const handleTouchMoveNative = (e: TouchEvent) => {
+      if (!element.contains(e.target as Node)) return;
       if (!dragState.current.isDragging) return;
       const touch = e.touches[0];
       if (touch) {
         const deltaX = Math.abs(touch.clientX - dragState.current.startX);
         if (deltaX > 10) {
           e.preventDefault();
+          e.stopPropagation();
         }
         dragState.current.currentX = touch.clientX;
       }
     };
 
-    element.addEventListener("wheel", handleWheelNative, { passive: false });
-    element.addEventListener("touchmove", handleTouchMoveNative, { passive: false });
+    // Add to document with capture phase to intercept early
+    document.addEventListener("wheel", handleWheelNative, { passive: false, capture: true });
+    document.addEventListener("touchmove", handleTouchMoveNative, { passive: false, capture: true });
 
     return () => {
-      element.removeEventListener("wheel", handleWheelNative);
-      element.removeEventListener("touchmove", handleTouchMoveNative);
+      document.removeEventListener("wheel", handleWheelNative, { capture: true });
+      document.removeEventListener("touchmove", handleTouchMoveNative, { capture: true });
     };
   }, [images.length]);
 
