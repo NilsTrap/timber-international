@@ -3,7 +3,6 @@
 import { useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { useJourneyProgress } from "@/hooks/useJourneyProgress";
-import { JourneyProgressIndicator } from "./JourneyProgressIndicator";
 import { JourneyStage } from "./JourneyStage";
 import { JourneyCompletionCTA } from "./JourneyCompletionCTA";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
@@ -49,7 +48,7 @@ const STAGE_GALLERY_IMAGES: Record<string, GalleryImage[]> = {
 /**
  * Production Journey scroll container with 8 full-screen stages.
  * Uses CSS scroll-snap for section-by-section scrolling.
- * Includes keyboard navigation (ArrowUp/ArrowDown) and progress indicator.
+ * Includes keyboard navigation (ArrowUp/ArrowDown).
  */
 export function ProductionJourney() {
   const t = useTranslations("home");
@@ -98,15 +97,6 @@ export function ProductionJourney() {
             ": " +
             t(`journey.${STAGE_KEYS[currentStage - 1]}`)}
       </div>
-
-      {/* Progress indicator - only visible when a journey stage is in view */}
-      {currentStage > 0 && (
-        <JourneyProgressIndicator
-          currentStage={currentStage}
-          total={8}
-          onStageClick={scrollToStage}
-        />
-      )}
 
       {/* Journey stages with full-screen backgrounds */}
       {STAGE_KEYS.map((stageKey, i) => (
