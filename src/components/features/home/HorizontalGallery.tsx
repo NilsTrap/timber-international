@@ -158,11 +158,11 @@ export function HorizontalGallery({
 
   // Mouse handlers for desktop drag/swipe
   const handleMouseDown = (e: React.MouseEvent) => {
-    // Focus the gallery for keyboard navigation
-    galleryRef.current?.focus();
+    // Focus the gallery for keyboard navigation (preventScroll to avoid instant snap)
+    galleryRef.current?.focus({ preventScroll: true });
 
     if (isButtonClick(e.target)) return;
-    e.preventDefault(); // Prevent text selection
+    // Don't preventDefault here - let click events work normally for smooth scroll
     dragState.current = {
       isDragging: true,
       startX: e.clientX,
@@ -172,6 +172,11 @@ export function HorizontalGallery({
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!dragState.current.isDragging) return;
+    // Only prevent default when actually dragging (moving)
+    const deltaX = Math.abs(e.clientX - dragState.current.startX);
+    if (deltaX > 5) {
+      e.preventDefault();
+    }
     dragState.current.currentX = e.clientX;
   };
 

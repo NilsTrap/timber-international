@@ -74,12 +74,31 @@ export function JourneyStage({
     : [];
   const showGallery = allGalleryImages.length > 1;
 
+  // Click to snap - scroll this stage into full view when clicked
+  const handleStageClick = (e: React.MouseEvent) => {
+    // Don't scroll if clicking on a button (gallery navigation)
+    if ((e.target as HTMLElement).closest("button")) return;
+
+    const element = stageRef.current;
+    if (!element) return;
+
+    // Get the element's position and scroll to it
+    const rect = element.getBoundingClientRect();
+    const scrollTop = window.scrollY + rect.top;
+
+    window.scrollTo({
+      top: scrollTop,
+      behavior: reducedMotion ? "auto" : "smooth",
+    });
+  };
+
   return (
     <div
       ref={stageRef}
       data-stage={stageNumber}
       id={`stage-${stageNumber}`}
-      className="relative h-screen w-full snap-start snap-always overflow-hidden"
+      onClick={handleStageClick}
+      className="relative h-screen w-full snap-start snap-always overflow-hidden cursor-pointer"
     >
       {/* Background Image/Video - only when NOT showing gallery */}
       {!showGallery && (
