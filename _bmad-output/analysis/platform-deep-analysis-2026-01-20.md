@@ -27,11 +27,11 @@
 |------|--------|------------|
 | 1. Business Model | ✅ Complete | 100% |
 | 2. User Personas & Portals | ✅ Complete | 100% |
-| 3. Data Model | ⏳ Pending | 0% |
-| 4. Integration Points | ⏳ Pending | 0% |
+| 3. Data Model | ✅ Complete | 100% |
+| 4. Integration Points | 🔄 In Progress | 0% |
 | 5. MVP Prioritization | ⏳ Pending | 0% |
 
-**Last Updated:** 2026-01-20 (after Question 2.9 - Architecture Decision)
+**Last Updated:** 2026-01-20 (after Question 3.10 - Financial Documents)
 
 ---
 
@@ -529,26 +529,305 @@ Benefits:
 └── Easier maintenance
 ```
 
+### Principle #7: RESTful API ARCHITECTURE
+
+Backend and frontend are separated via RESTful API for maximum flexibility.
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         BACKEND                                  │
+│                                                                  │
+│    Supabase Database + RESTful API Layer                        │
+│                                                                  │
+└─────────────────────────────┬────────────────────────────────────┘
+                              │
+                         RESTful API
+                              │
+        ┌─────────────────────┼─────────────────────┐
+        │                     │                     │
+        ▼                     ▼                     ▼
+┌───────────────┐   ┌───────────────┐   ┌───────────────┐
+│   Web Portal  │   │  Mobile App   │   │  Future Apps  │
+│   (Next.js)   │   │  (iOS/Android)│   │  (partners?)  │
+└───────────────┘   └───────────────┘   └───────────────┘
+
+Benefits:
+├── Clean separation of concerns
+├── Can build mobile apps using same API
+├── Can build additional frontends easily
+├── Third-party integrations possible
+└── Different teams can work independently
+```
+
+---
+
+## Area 3: Data Model
+
+### 3.1 Core Entities
+
+**Organizations & Users:**
+
+| Entity | Description |
+|--------|-------------|
+| **Organization** | A company (client, supplier, producer, or Timber World) |
+| **User** | A person who logs in, belongs to an organization |
+| **Role** | What type of access (client, supplier, producer, admin) |
+| **Permission** | Specific functions a user can access |
+
+**Products & Inventory:**
+
+| Entity | Description |
+|--------|-------------|
+| **Product** | A type of timber product with specific attributes |
+| **Inventory** | Quantity of a product at a specific location |
+| **Location** | A warehouse, factory, yard, or transit point |
+| **Price List** | Prices for products (can be per-client) |
+
+**Orders & Transactions:**
+
+| Entity | Description |
+|--------|-------------|
+| **Client Order** | Order from a client to Timber World |
+| **Supplier Order** | Order from Timber World to a supplier |
+| **Production Order** | Order from Timber World to a producer |
+| **Order Line** | Individual item within an order |
+| **Shipment** | A delivery (can contain multiple orders) |
+| **Invoice** | Financial document for payment |
+| **CMR** | Transport document (Consignment Note) |
+
+**Production Tracking:**
+
+| Entity | Description |
+|--------|-------------|
+| **Production Job** | A specific production task at a factory |
+| **Material Consumption** | Raw materials consumed in production |
+| **Production Output** | New products created from production |
+| **Quality Report** | Quality inspection results with photos |
+
+**Communication:**
+
+| Entity | Description |
+|--------|-------------|
+| **Message** | Communication between parties |
+| **Document** | Uploaded files (photos, PDFs, CAD files) |
+| **Notification** | System alerts to users |
+
+### 3.2 Product Attributes
+
+| Attribute | Example | Notes |
+|-----------|---------|-------|
+| **Product Name** | Board, Beam, Solid Wood Panel, Handrail, Step | Flexible, can add more |
+| **Species** | Oak, Ash, Birch | Wood species |
+| **Thickness** | 22, 27, 40 (mm) | Separate, filterable |
+| **Width** | 100, 200, 600 (mm) | Separate, filterable |
+| **Length** | 1200, 2400, 3000 (mm) | Separate, filterable |
+| **Moisture Content** | 8%, 12%, "wet" | Dryness level |
+| **Quality Grade** | A, B, A/B, Rustic | Quality classification |
+| **Type** | FJ, FS | For panels: Finger-jointed or Full stave |
+| **Finish** | Unfinished, Oiled, Lacquered | Surface treatment |
+| **FSC Certified** | Yes/No | Certification status |
+
+**Decision:** Product names are NOT hardcoded. System allows adding new product names dynamically.
+
+### 3.3 Product Transformation Model
+
+**Decision: Option B - New products created at each stage**
+
+When products are processed, INPUT products are consumed and OUTPUT products are created.
+
+```
+PRODUCTION TRANSFORMATION
+
+INPUT (consumed):
+├── Product: Oak Board (wet)
+├── Quantity: 10 m³
+└── Status: CONSUMED
+
+OUTPUT (created):
+├── Product: Oak Board (kiln-dried)  ← NEW PRODUCT
+├── Quantity: 9.5 m³
+└── Waste/Loss: 0.5 m³ tracked
+```
+
+**Benefits:**
+- Full traceability (what went in, what came out)
+- Track losses/waste at each stage
+- Accurate cost calculation per stage
+- Quality tracking per production batch
+
+### 3.4 Inventory Location Model
+
+**Decision: Track inventory at ALL locations**
+
+| Location Type | Examples | Tracked |
+|---------------|----------|---------|
+| Timber World Warehouses | Main warehouse, regional (2-3) | ✅ Yes |
+| Supplier Locations | Each supplier's yard/warehouse | ✅ Yes |
+| Producer Facilities | Each factory's storage area | ✅ Yes |
+| In Transit | Trucks between locations | ✅ Yes |
+
+```
+INVENTORY STRUCTURE
+
+Organization
+└── Location (Warehouse/Yard/Facility)
+    └── Inventory Items
+        ├── Product A: 50 m³
+        ├── Product B: 120 pieces
+        └── Product C: 30 m²
+
+MOVEMENT TRACKING
+Location A ──(Movement + CMR)──► Location B
+```
+
+### 3.5 Units of Measure
+
+**Decision:** Units are flexible, admin can add more.
+
+| Unit | Code | Used For |
+|------|------|----------|
+| Cubic meters | m³ | Logs, boards, large volumes |
+| Pieces | pcs | Individual items, panels |
+| Square meters | m² | Panels by surface area |
+| Running meters | rm | Handrails, strips, long items |
+| Package | pkg | Bundled items |
+| *(admin can add more)* | | |
+
+**Important:** Buy and sell can use DIFFERENT units (e.g., buy per m³, sell per piece).
+
+### 3.6 Order Flow
+
+**Two paths depending on inventory:**
+
+```
+PATH A: FROM STOCK
+1. Client places order
+2. TW confirms order
+3. Check inventory → Available
+4. Shipment created
+5. Delivery + CMR
+6. Invoice sent
+7. Payment received
+
+PATH B: NEEDS PRODUCTION
+1. Client places order
+2. TW confirms order
+3. Check inventory → Not available
+4. Create Production Order to Producer
+5. Producer manufactures
+6. Shipment: Producer → TW Warehouse
+7. ★ QUALITY CONTROL at TW ★
+8. Shipment: TW → Client
+9. Delivery + CMR
+10. Invoice sent
+11. Payment received
+```
+
+**Key Insight:** Quality control happens at TW warehouse before shipping to client.
+
+### 3.7 Pricing Model
+
+| Aspect | Details |
+|--------|---------|
+| **Standard Price List** | Yes, for stock and production items |
+| **Custom Prices** | Yes, per client (history/relationship based) |
+| **Price Units** | m³, piece, m², running meter (product-dependent) |
+| **Buy vs Sell Units** | Can differ |
+| **Volume Discounts** | Possible, small quantity surcharge used |
+| **Delivery Terms** | Mostly EXW, some DAP |
+| **Price Stability** | 1-2x per year changes (sometimes 3 years unchanged) |
+
+```
+PRICING STRUCTURE
+
+Standard Prices (baseline)
+├── Product A: €250/m³ or €45/piece
+└── Product B: €280/m³
+
+Client-Specific Prices (overrides)
+├── Client X: Product A at €240/m³
+└── Client Y: Product A + DAP included
+
+Additional Charges
+├── Small quantity surcharge
+├── Delivery cost (if not DAP)
+└── Special processing fees
+```
+
+### 3.8 Cost Tracking
+
+**Decision:** Full cost tracking for margin calculation.
+
+| Cost Type | Tracked |
+|-----------|---------|
+| Raw material cost (paid to suppliers) | ✅ Yes |
+| Production cost (paid to producers) | ✅ Yes |
+| Transport/logistics cost | ✅ Yes |
+| Overhead/handling cost | ✅ Yes |
+| Total cost per product | ✅ Yes (calculated) |
+
+```
+COST STRUCTURE PER SALE
+
+Sale to Client: €500
+├── Raw material cost: €150
+├── Production cost: €120
+├── Transport (inbound): €30
+├── Transport (outbound): €40
+├── Handling/overhead: €20
+├── Total cost: €360
+└── MARGIN: €140 (28%)
+```
+
+### 3.9 Quality Tracking
+
+**Decision:** Comprehensive quality tracking.
+
+| Quality Data | Tracked |
+|--------------|---------|
+| Quality grade per batch | ✅ Yes |
+| Photos of products | ✅ Yes |
+| Defect reports / issues | ✅ Yes |
+| Quality certificates (FSC, etc.) | ✅ Yes |
+| Supplier/producer quality score | ✅ Yes |
+| Customer complaints | ✅ Yes |
+
+### 3.10 Financial Documents
+
+**Decision:** All documents bi-directional (same structure, different direction).
+
+| Document | Outbound (TW sends) | Inbound (TW receives) |
+|----------|--------------------|-----------------------|
+| Invoice | To clients | From suppliers/producers |
+| Credit Note | To clients | From suppliers/producers |
+| Packing List | To clients | From suppliers/producers |
+| CMR | To clients | From suppliers/producers |
+| Purchase Order | To suppliers | From clients |
+| Quote/Offer | To clients | From suppliers |
+
+```
+DOCUMENT MODEL
+
+Document
+├── Type: invoice | credit_note | packing_list | cmr | purchase_order | quote
+├── Direction: outbound | inbound
+├── From: Organization
+├── To: Organization
+├── Related Order: Order ID
+├── Line Items: [...]
+├── Total Amount
+├── Status: draft | sent | received | confirmed | paid
+└── Attachments: [files]
+```
+
 ---
 
 ## Open Questions
 
 ### To Be Answered:
 
-1. **Data Model** (Area 3)
-   - What entities need to be tracked?
-   - How do orders flow through the system?
-   - How is inventory tracked across locations?
-
-2. **Integration Points** (Area 4)
-   - ERP integration needed?
-   - Accounting system integration?
-   - Logistics/shipping integration?
-
-3. **MVP Prioritization** (Area 5)
-   - Which functions to build first?
-   - What's the minimum viable feature set?
-   - Database first or UI first?
+1. **Integration Points** (Area 4) - Next
+2. **MVP Prioritization** (Area 5)
 
 ---
 
@@ -564,6 +843,10 @@ Benefits:
 | Q2.6-2.7 | Supplier Portal, Producer Portal | ✅ Answered |
 | Q2.8 | Admin Portal Functions | ✅ Answered |
 | Q2.9 | Portal Architecture Decision | ✅ Decided: Option B (One Portal) |
+| Q3.1-3.4 | Core Entities, Product Attributes, Transformation, Inventory | ✅ Answered |
+| Q3.5-3.7 | Units, Order Flow, Pricing | ✅ Answered |
+| Q3.8-3.10 | Cost Tracking, Quality, Documents | ✅ Answered |
+| Area 4 | Integration Points | 🔄 Starting |
 
 ---
 
