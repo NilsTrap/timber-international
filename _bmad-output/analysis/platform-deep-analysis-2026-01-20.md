@@ -223,7 +223,84 @@ FUTURE STATE (with platform):
 - Roles can be switched ON/OFF per person
 - Roles include: Sales, Operations, Quality Control, Logistics, Finance, Management, Admin/Owner
 
-### 2.4 Client Portal Requirements
+### 2.4 Sales Team
+
+**Profile:**
+- Can be internal employees, external agents, or partner company agents
+- Current: 2 people (Nils + assistant)
+- Future: Tens to hundreds across multiple countries
+- Geographically distributed everywhere
+- Function-based access (can toggle features on/off per salesperson)
+
+| Sales Type | Description | Example |
+|------------|-------------|---------|
+| **Internal Employee** | Full-time Timber World staff | Nils, Sales Assistant |
+| **External Agent** | Commission-based independent agents | Country-specific sales reps |
+| **Partner Agent** | Sales through partner companies | Reseller sales teams |
+
+**Main Activities:**
+- Finding new clients (prospecting)
+- Managing existing client relationships
+- Creating quotes and proposals
+- Following up on quotes and orders
+- Setting client-specific pricing
+- Placing orders on behalf of clients
+- Post-sale support and quality follow-up
+
+**Biggest Pain Today:**
+- No single system - data scattered across email, sheets, WhatsApp
+- Manual quote creation for each client individually
+- Manual specification documents and signature collection
+- Manual follow-up on production, shipment, transport status
+- Time consumed on repetitive admin tasks instead of selling
+- Risk of forgetting tasks or making errors
+- No visibility into what happens after the sale closes
+
+**Interaction Model:**
+- Client-facing role (between Timber World system and clients)
+- Don't interact directly with suppliers/producers (that's operations)
+- Stay involved post-sale for quality feedback and client satisfaction
+- Hand off operational tasks to the system, not to other people
+
+### 2.5 Sales Portal Requirements
+
+**Sales Portal Features:**
+
+| Feature | Priority |
+|---------|----------|
+| View assigned clients and leads | Must Have |
+| Full CRM functionality (pipeline, deals, stages) | Must Have |
+| Contact management (companies, people, phones, emails) | Must Have |
+| Create and send quotes to clients | Must Have |
+| Place orders on behalf of clients | Must Have |
+| View client order history and status | Must Have |
+| View inventory and pricing | Must Have |
+| Set client-specific pricing | Must Have |
+| Track shipments and delivery status | Must Have |
+| Email integration (Gmail) for communication tracking | Must Have |
+| Activity logging (calls, meetings, follow-ups) | Must Have |
+| Follow-up reminders and task management | Must Have |
+| View client satisfaction and quality feedback | Must Have |
+| Sales performance reporting | Nice to Have |
+| Commission tracking | Nice to Have |
+| Territory/region management | Nice to Have |
+
+**Additional Sales Requirements:**
+- Function toggles per salesperson (internal vs external may have different access)
+- Mobile-friendly for field sales
+- Quick quote creation connected to real inventory
+- Order status visible without asking operations
+- Communication history with each client in one place
+- Pipeline analytics and forecasting
+
+**The Salesperson's Dream:**
+- **One system** - All client data, quotes, orders, communication in one place
+- **Speed** - Create quotes in minutes, not hours
+- **Visibility** - Know order status without chasing operations
+- **Automation** - System handles admin, salesperson handles relationships
+- **Focus** - Spend time selling, not doing paperwork
+
+### 2.6 Client Portal Requirements
 
 **Two Client Journeys:**
 
@@ -294,7 +371,7 @@ Order placed → Confirmation → Track delivery
 - **Easy for regular clients** - One-click reorder, modify quantities, done
 - **Rich information** - As much detail as possible
 
-### 2.5 Supplier Portal Requirements
+### 2.7 Supplier Portal Requirements
 
 **Supplier Portal Features:**
 
@@ -319,7 +396,7 @@ Order placed → Confirmation → Track delivery
 - Multi-level access within organization (owner vs production manager)
 - Production manager gets limited view (order details, quality specs, NO financial info)
 
-### 2.6 Producer Portal Requirements
+### 2.8 Producer Portal Requirements
 
 **Producer Portal Features:**
 
@@ -348,7 +425,7 @@ Order placed → Confirmation → Track delivery
 - Quality photos flow both directions
 - Should be good enough to replace their internal systems
 
-### 2.7 Admin Portal Requirements
+### 2.9 Admin Portal Requirements
 
 **All admin functions available, toggled per user (not separate portals).**
 
@@ -391,7 +468,7 @@ Order placed → Confirmation → Track delivery
 | Approvals Queue | Decisions waiting for approval |
 | Strategic Reports | Long-term trends, forecasting |
 
-### 2.8 Multi-Role Users
+### 2.10 Multi-Role Users
 
 **Finding:** Multi-role users are common in this business.
 
@@ -403,7 +480,7 @@ Order placed → Confirmation → Track delivery
 
 **Decision:** One user can have multiple roles, sees all their functions combined.
 
-### 2.9 Portal Architecture Decision
+### 2.11 Portal Architecture Decision
 
 **DECISION: Option B - One Portal, Function-Based Access**
 
@@ -451,7 +528,7 @@ apps/
 
 ```
 USER
-├── Has one or more ROLES (client, supplier, producer, admin)
+├── Has one or more ROLES (client, supplier, producer, sales, admin)
 │
 └── Each ROLE has FUNCTIONS that can be toggled ON/OFF
     │

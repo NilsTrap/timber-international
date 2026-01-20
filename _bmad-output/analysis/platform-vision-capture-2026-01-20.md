@@ -82,10 +82,25 @@ timber-world/                    # Turborepo monorepo
   - Submit completed production
 - **Note:** Each factory may need their own branded/isolated view
 
-### 4. Admin Portal(s) (Internal Staff)
-- **Users:** Sales team, operations, management, executives
+### 4. Sales Portal (Sales Team)
+- **Users:** Internal sales employees, external agents, partner company agents
+- **Scale:** Currently 2 people, future tens to hundreds across countries
 - **Key Functions:**
-  - Quote management
+  - Full CRM functionality (pipeline, deals, contacts)
+  - Create and send quotes to clients
+  - Place orders on behalf of clients
+  - View client order history and status
+  - View inventory and pricing
+  - Set client-specific pricing
+  - Email integration (Gmail) for communication tracking
+  - Activity logging (calls, meetings, follow-ups)
+  - Track shipments and delivery status
+  - Sales performance reporting
+- **Key Pain Solved:** Salespeople spend time selling, not doing admin
+
+### 5. Admin Portal(s) (Internal Staff)
+- **Users:** Operations, management, executives
+- **Key Functions:**
   - Order management
   - Supplier oversight
   - Producer oversight
@@ -95,7 +110,7 @@ timber-world/                    # Turborepo monorepo
   - Analytics Portal - data analysis and insights
   - Head Office Portal - executive overview, totals, KPIs
 
-### 5. Supplier Portal
+### 6. Supplier Portal
 - **Users:** Timber suppliers (raw material providers)
 - **Key Functions:**
   - View orders to fulfill
@@ -104,7 +119,7 @@ timber-world/                    # Turborepo monorepo
   - Real-time sync with central database
   - Communication with Timber World
 
-### 6. Future Portals (Potential)
+### 7. Future Portals (Potential)
 - Marketing agency access
 - Logistics partner portal
 - Third-party integrations
@@ -134,12 +149,12 @@ timber-world/                    # Turborepo monorepo
 │  │  • Production tracking  • Invoices  • Analytics         │   │
 │  └─────────────────────────────────────────────────────────┘   │
 │                              │                                  │
-│              ┌───────────────┼───────────────┐                 │
-│              ▼               ▼               ▼                 │
-│      ┌───────────┐   ┌───────────┐   ┌───────────┐            │
-│      │  ADMIN    │   │ MARKETING │   │ ANALYTICS │            │
-│      │  PORTAL   │   │   SITE    │   │  PORTAL   │            │
-│      └───────────┘   └───────────┘   └───────────┘            │
+│              ┌────────────┬──┼──┬────────────┐                 │
+│              ▼            ▼  ▼  ▼            ▼                 │
+│      ┌───────────┐ ┌─────────┐ ┌───────────┐ ┌───────────┐    │
+│      │  ADMIN    │ │  SALES  │ │ MARKETING │ │ ANALYTICS │    │
+│      │  PORTAL   │ │  PORTAL │ │   SITE    │ │  PORTAL   │    │
+│      └───────────┘ └─────────┘ └───────────┘ └───────────┘    │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
                                │
