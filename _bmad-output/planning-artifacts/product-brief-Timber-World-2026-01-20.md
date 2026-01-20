@@ -275,7 +275,41 @@ This same workflow executes whether the order is worth €500 or €50,000 - mak
 
 ---
 
-#### Persona 5: "Max" - The Sales Agent
+#### Persona 5: "Johan" - The Purchase Manager
+
+**Profile:**
+- Internal Timber World employee, or external based in supplier countries
+- Responsible for procurement: finding suppliers, placing orders, managing relationships
+- Currently one person, future: many across countries where raw materials are sourced
+- Specialized role focused on the buying side of the business
+
+**Needs & Motivations:**
+- Find reliable suppliers with good quality and pricing
+- Place purchase orders efficiently
+- Track incoming deliveries and inventory levels
+- Manage supplier relationships and performance
+- Arrange transport for raw materials
+- Know when to reorder based on inventory and production needs
+
+**Current Frustrations:**
+- Data scattered across email, spreadsheets, WhatsApp
+- Manual creation of purchase orders for each supplier
+- No single view of all supplier orders and deliveries
+- Chasing suppliers for delivery updates via phone/email
+- No visibility into supplier performance over time
+- Transport arrangement is manual and time-consuming
+
+**What Success Looks Like:**
+- One system for all supplier management and procurement
+- Create purchase orders in minutes with real inventory data
+- Real-time tracking of all incoming deliveries
+- Supplier performance dashboards
+- Automated alerts when inventory is low
+- Future: AI assists with supplier discovery and communication
+
+---
+
+#### Persona 6: "Max" - The Sales Agent
 
 **Profile:**
 - Could be internal employee, external agent, or partner company rep
@@ -308,7 +342,7 @@ This same workflow executes whether the order is worth €500 or €50,000 - mak
 
 ### Secondary Users
 
-#### Persona 6: "Katja" - The Operations Manager (Admin)
+#### Persona 7: "Katja" - The Operations Manager (Admin)
 
 **Profile:**
 - Internal Timber World staff
@@ -337,7 +371,7 @@ This same workflow executes whether the order is worth €500 or €50,000 - mak
 
 ---
 
-#### Persona 7: "Nils" - The Executive (Owner)
+#### Persona 8: "Nils" - The Executive (Owner)
 
 **Profile:**
 - Company owner/executive
@@ -369,6 +403,7 @@ This same workflow executes whether the order is worth €500 or €50,000 - mak
 | Suppliers | Timber World reaches out for partnerships |
 | Producers | Timber World contracts for production capacity |
 | Sales | Hired or contracted by Timber World |
+| Purchase | Hired by Timber World or contracted in supplier regions |
 
 **Onboarding Phase:**
 
@@ -378,6 +413,7 @@ This same workflow executes whether the order is worth €500 or €50,000 - mak
 | Suppliers | Receive login → See first order → Confirm and deliver |
 | Producers | Receive login → See inventory at facility → Report first production |
 | Sales | Receive login → Import/enter clients → Create first quote |
+| Purchase | Receive login → Import/enter suppliers → Create first purchase order |
 
 **Client Journey Detail:**
 ```
@@ -407,6 +443,7 @@ This same workflow executes whether the order is worth €500 or €50,000 - mak
 | Suppliers | Confirm orders, report deliveries, submit invoices |
 | Producers | Accept jobs, report progress, log materials |
 | Sales | Manage pipeline, create quotes, track client orders |
+| Purchase | Create POs, track deliveries, manage suppliers |
 | Admins | Oversee operations, resolve issues, run reports |
 
 **"Aha!" Moment:**
@@ -417,6 +454,7 @@ This same workflow executes whether the order is worth €500 or €50,000 - mak
 | Suppliers | Payment status visible without asking |
 | Producers | Efficiency report shows where to improve |
 | Sales | Quote created in 5 minutes, client approves same day |
+| Purchase | PO created in 5 minutes, delivery tracked automatically |
 | Admins | Morning takes 10 minutes instead of 2 hours |
 
 ---

@@ -262,7 +262,87 @@ FUTURE STATE (with platform):
 - Stay involved post-sale for quality feedback and client satisfaction
 - Hand off operational tasks to the system, not to other people
 
-### 2.5 Sales Portal Requirements
+### 2.5 Purchase Team
+
+**Profile:**
+- Primarily internal Timber World employees
+- Can also be external contractors based in supplier countries/regions
+- Current: 1 person
+- Future: Many across countries where raw materials are sourced
+- Specialized role focused on the buying/procurement side
+
+| Purchase Type | Description | Example |
+|---------------|-------------|---------|
+| **Internal Employee** | Full-time Timber World procurement staff | Current purchase manager |
+| **Regional Buyer** | External contractor in supplier region | Buyer based in Baltic states |
+
+**Main Activities:**
+- Finding and evaluating new suppliers
+- Creating purchase orders to suppliers
+- Managing supplier relationships
+- Tracking deliveries from suppliers
+- Arranging transport for incoming materials
+- Approving supplier invoices
+- Negotiating pricing and terms
+
+**Biggest Pain Today:**
+- Data scattered across email, spreadsheets, WhatsApp
+- Manual creation of purchase orders for each supplier
+- No single view of all supplier orders and deliveries
+- Chasing suppliers for delivery updates via phone/email
+- No visibility into supplier performance over time
+- Transport arrangement is manual and time-consuming
+
+**Interaction Model:**
+- Supplier-facing role (between Timber World and suppliers)
+- Works closely with operations for inventory needs
+- Coordinates with finance for supplier payments
+- Future: Supervises AI-automated procurement processes
+
+**Future Vision:**
+- AI mailing agent searches for new suppliers automatically
+- Automated communication to gather supplier info and quotes
+- Purchase Manager supervises and confirms decisions
+- System suggests reorder points based on inventory and production
+
+### 2.6 Purchase Portal Requirements
+
+**Purchase Portal Features:**
+
+| Feature | Priority |
+|---------|----------|
+| View all suppliers and their details | Must Have |
+| Create and send purchase orders to suppliers | Must Have |
+| Track purchase order status | Must Have |
+| View incoming deliveries | Must Have |
+| Confirm receipt of deliveries | Must Have |
+| View supplier invoices | Must Have |
+| Approve supplier invoices for payment | Must Have |
+| View supplier payment status | Must Have |
+| View inventory levels (to know when to reorder) | Must Have |
+| Supplier performance metrics (quality, delivery time) | Must Have |
+| Onboard new suppliers | Must Have |
+| Arrange transport for incoming materials | Must Have |
+| Communication with suppliers through system | Must Have |
+| Supplier contract management | Nice to Have |
+| Automated reorder suggestions | Nice to Have |
+| AI-assisted supplier discovery | Future |
+
+**Additional Purchase Requirements:**
+- Function toggles per purchase manager (internal vs external may have different access)
+- View supplier quality history and certifications
+- Track transport and logistics for incoming materials
+- Integration with inventory for reorder alerts
+- Supplier comparison and evaluation tools
+
+**The Purchase Manager's Dream:**
+- **One system** - All supplier data, orders, deliveries, invoices in one place
+- **Speed** - Create POs in minutes, not hours
+- **Visibility** - Know delivery status without chasing suppliers
+- **Automation** - System handles routine orders, manager handles exceptions
+- **Intelligence** - AI finds suppliers, manager approves
+
+### 2.7 Sales Portal Requirements
 
 **Sales Portal Features:**
 
@@ -300,7 +380,7 @@ FUTURE STATE (with platform):
 - **Automation** - System handles admin, salesperson handles relationships
 - **Focus** - Spend time selling, not doing paperwork
 
-### 2.6 Client Portal Requirements
+### 2.8 Client Portal Requirements
 
 **Two Client Journeys:**
 
@@ -371,7 +451,7 @@ Order placed → Confirmation → Track delivery
 - **Easy for regular clients** - One-click reorder, modify quantities, done
 - **Rich information** - As much detail as possible
 
-### 2.7 Supplier Portal Requirements
+### 2.9 Supplier Portal Requirements
 
 **Supplier Portal Features:**
 
@@ -396,7 +476,7 @@ Order placed → Confirmation → Track delivery
 - Multi-level access within organization (owner vs production manager)
 - Production manager gets limited view (order details, quality specs, NO financial info)
 
-### 2.8 Producer Portal Requirements
+### 2.10 Producer Portal Requirements
 
 **Producer Portal Features:**
 
@@ -425,7 +505,7 @@ Order placed → Confirmation → Track delivery
 - Quality photos flow both directions
 - Should be good enough to replace their internal systems
 
-### 2.9 Admin Portal Requirements
+### 2.11 Admin Portal Requirements
 
 **All admin functions available, toggled per user (not separate portals).**
 
@@ -468,7 +548,7 @@ Order placed → Confirmation → Track delivery
 | Approvals Queue | Decisions waiting for approval |
 | Strategic Reports | Long-term trends, forecasting |
 
-### 2.10 Multi-Role Users
+### 2.12 Multi-Role Users
 
 **Finding:** Multi-role users are common in this business.
 
@@ -480,7 +560,7 @@ Order placed → Confirmation → Track delivery
 
 **Decision:** One user can have multiple roles, sees all their functions combined.
 
-### 2.11 Portal Architecture Decision
+### 2.13 Portal Architecture Decision
 
 **DECISION: Option B - One Portal, Function-Based Access**
 
@@ -528,7 +608,7 @@ apps/
 
 ```
 USER
-├── Has one or more ROLES (client, supplier, producer, sales, admin)
+├── Has one or more ROLES (client, supplier, producer, sales, purchase, admin)
 │
 └── Each ROLE has FUNCTIONS that can be toggled ON/OFF
     │

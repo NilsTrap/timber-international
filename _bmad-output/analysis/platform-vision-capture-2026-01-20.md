@@ -98,7 +98,21 @@ timber-world/                    # Turborepo monorepo
   - Sales performance reporting
 - **Key Pain Solved:** Salespeople spend time selling, not doing admin
 
-### 5. Admin Portal(s) (Internal Staff)
+### 5. Purchase Portal (Procurement Team)
+- **Users:** Internal purchase managers, external buyers in supplier regions
+- **Scale:** Currently 1 person, future many across supplier countries
+- **Key Functions:**
+  - Find and evaluate new suppliers
+  - Create and send purchase orders to suppliers
+  - Track purchase order status and incoming deliveries
+  - Manage supplier relationships and performance
+  - Approve supplier invoices for payment
+  - Arrange transport for incoming materials
+  - View inventory levels for reorder decisions
+  - Future: Supervise AI-automated procurement
+- **Key Pain Solved:** Procurement is automated, manager supervises instead of doing manual work
+
+### 6. Admin Portal(s) (Internal Staff)
 - **Users:** Operations, management, executives
 - **Key Functions:**
   - Order management
@@ -110,7 +124,7 @@ timber-world/                    # Turborepo monorepo
   - Analytics Portal - data analysis and insights
   - Head Office Portal - executive overview, totals, KPIs
 
-### 6. Supplier Portal
+### 7. Supplier Portal
 - **Users:** Timber suppliers (raw material providers)
 - **Key Functions:**
   - View orders to fulfill
@@ -119,7 +133,7 @@ timber-world/                    # Turborepo monorepo
   - Real-time sync with central database
   - Communication with Timber World
 
-### 7. Future Portals (Potential)
+### 8. Future Portals (Potential)
 - Marketing agency access
 - Logistics partner portal
 - Third-party integrations
@@ -149,12 +163,12 @@ timber-world/                    # Turborepo monorepo
 │  │  • Production tracking  • Invoices  • Analytics         │   │
 │  └─────────────────────────────────────────────────────────┘   │
 │                              │                                  │
-│              ┌────────────┬──┼──┬────────────┐                 │
-│              ▼            ▼  ▼  ▼            ▼                 │
-│      ┌───────────┐ ┌─────────┐ ┌───────────┐ ┌───────────┐    │
-│      │  ADMIN    │ │  SALES  │ │ MARKETING │ │ ANALYTICS │    │
-│      │  PORTAL   │ │  PORTAL │ │   SITE    │ │  PORTAL   │    │
-│      └───────────┘ └─────────┘ └───────────┘ └───────────┘    │
+│         ┌──────────┬──────────┬──┼──┬──────────┬──────────┐    │
+│         ▼          ▼          ▼  ▼  ▼          ▼          ▼    │
+│    ┌────────┐ ┌────────┐ ┌────────┐ ┌─────────┐ ┌─────────┐   │
+│    │ ADMIN  │ │ SALES  │ │PURCHASE│ │MARKETING│ │ANALYTICS│   │
+│    │ PORTAL │ │ PORTAL │ │ PORTAL │ │  SITE   │ │ PORTAL  │   │
+│    └────────┘ └────────┘ └────────┘ └─────────┘ └─────────┘   │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
                                │
