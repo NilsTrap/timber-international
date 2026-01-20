@@ -28,10 +28,14 @@
 | 1. Business Model | ✅ Complete | 100% |
 | 2. User Personas & Portals | ✅ Complete | 100% |
 | 3. Data Model | ✅ Complete | 100% |
-| 4. Integration Points | 🔄 In Progress | 0% |
-| 5. MVP Prioritization | ⏳ Pending | 0% |
+| 4. Integration Points | ✅ Complete | 100% |
+| 5. MVP Prioritization | ✅ Complete | 100% |
 
-**Last Updated:** 2026-01-20 (after Question 3.10 - Financial Documents)
+**Status: ANALYSIS COMPLETE** ✅
+
+**Last Updated:** 2026-01-20 (Analysis Complete)
+
+**Next Step:** Create Platform Product Brief using `/bmad:bmm:workflows:create-product-brief`
 
 ---
 
@@ -822,12 +826,191 @@ Document
 
 ---
 
-## Open Questions
+## Area 4: Integration Points
 
-### To Be Answered:
+### 4.1 Current Systems → Platform Replacement
 
-1. **Integration Points** (Area 4) - Next
-2. **MVP Prioritization** (Area 5)
+| System Type | Current | Future |
+|-------------|---------|--------|
+| Accounting | Various (per country) | Connect via API |
+| ERP | None | Platform IS the ERP |
+| CRM | Pipedrive | **Replace with built-in CRM** |
+| Email | Gmail | **Integrate with platform** |
+| Document Storage | Google Drive | TBD (server or Drive) |
+| Spreadsheets | Google Sheets | **Replace with platform** |
+
+### 4.2 NEW: CRM Functionality
+
+**Decision:** Built-in CRM replaces Pipedrive. Additional functions for sales role.
+
+| CRM Function | Description |
+|--------------|-------------|
+| Contact management | Companies, contacts, phones, emails |
+| Email integration | Connect Gmail, track all communication |
+| Activity logging | Calls, meetings, emails |
+| Pipeline tracking | Deals and sales stages |
+| Follow-up reminders | Never miss a follow-up |
+| Sales reporting | Performance metrics |
+
+### 4.3 Accounting Integration
+
+| Feature | Approach |
+|---------|----------|
+| Invoice generation | Platform generates |
+| Sync to accounting | Monthly export OR API |
+| Payment status | Sync from bank/accounting via API |
+| Data export | Flexible format for accountants |
+
+**Note:** Different accounting systems per country - RESTful API handles all.
+
+### 4.4 Communication Integration
+
+| Integration | Status | Notes |
+|-------------|--------|-------|
+| Email sending | ✅ Required | Notifications, quotes, invoices |
+| Gmail integration | ✅ Required | For CRM email tracking |
+| SMS | ⏳ Later | Not MVP |
+| WhatsApp | ⏳ Later | Not MVP |
+
+### 4.5 Logistics/Shipping
+
+**Decision:** No carrier portal. AI-powered email/SMS quote processing.
+
+| Feature | Approach |
+|---------|----------|
+| Carrier API | ❌ No |
+| Carrier portal | ❌ No (too much friction) |
+| Quote requests | ✅ Auto-email/SMS to carriers |
+| Quote collection | ✅ AI parses email/SMS replies |
+| Quote comparison | ✅ System ranks options |
+| Document tracking | ✅ CMR, customs docs tracked |
+
+```
+SHIPPING QUOTE FLOW
+1. TW needs shipping
+2. System sends quote requests (email/SMS)
+3. Carriers reply naturally (email/SMS)
+4. AI parses responses (price, time, terms)
+5. System compares and ranks
+6. TW selects best
+7. Confirmation sent to carrier
+8. Documents tracked
+```
+
+### 4.6 Other Integrations
+
+| Integration | Status | Notes |
+|-------------|--------|-------|
+| Bank feed | ✅ Yes | Payment matching |
+| E-signature | ✅ Yes | For contracts |
+| AI chatbot | ✅ Yes | Quotation system |
+| Auto-translation | ✅ Yes | Build capability, add languages later |
+| Google Analytics | ✅ Yes | SEO stats on dashboard |
+
+### 4.7 Language Support
+
+| Phase | Languages |
+|-------|-----------|
+| MVP | English only |
+| Future | Swedish, Norwegian, Danish, Finnish, Dutch, German, Spanish |
+
+---
+
+## Area 5: MVP Prioritization
+
+### 5.1 Pain Points (Ranked)
+
+| Pain Point | Priority |
+|------------|----------|
+| **Production tracking** | ⭐ HIGHEST - Start here |
+| Inventory visibility | High |
+| Cost/margin tracking | High |
+| Supplier communication | Medium |
+| Client communication | Medium |
+| Quote system | Later |
+| CRM integration | Later |
+
+### 5.2 Build Order
+
+1. **Supplier/Producer Portal** - Production tracking first
+2. **Client Portal** - Self-service ordering
+3. **Admin Core** - Full internal operations
+4. **Advanced Features** - AI, multi-language, etc.
+
+### 5.3 Resources & Constraints
+
+| Factor | Reality |
+|--------|---------|
+| Builder | Nils (owner) + IT friends helping |
+| Budget | Time-based (no cash budget) |
+| Timeline | Basic production tracking needed ~1 week |
+| Approach | Build properly, but start with production |
+
+### 5.4 MVP Definition: Production Tracking
+
+**Approach:**
+- Do full analysis, Product Brief, PRD, Architecture (properly)
+- Create `apps/portal` (not mixed with marketing)
+- Start with production role and functions
+- 2-3 producers initially
+- Web only (no mobile required)
+
+**MVP Admin Functions:**
+- Create/manage producer accounts
+- Enter inventory sent to producer
+- View inventory at each producer
+- View production efficiency reports
+
+**MVP Producer Functions:**
+- Login with own credentials
+- View inventory at their facility
+- Enter production (input → output)
+- Submit/approve production
+- View their efficiency
+
+**System Auto-Calculations:**
+- Reduce input inventory when consumed
+- Add output inventory when produced
+- Calculate efficiency percentage
+- Calculate waste amount
+- Track time spent
+
+```
+MVP FLOW
+
+ADMIN:
+1. Create Producer account
+2. Enter: "Sent 10m³ Oak Boards to Producer X"
+3. View reports
+
+PRODUCER:
+1. Login
+2. See inventory: 10m³ Oak Boards
+3. New Production:
+   - Input: 10m³ Oak Boards
+   - Output: 9.2m³ Dried Oak Boards
+4. Submit
+
+SYSTEM:
+- Input inventory: 10m³ → 0m³
+- New output: 9.2m³ added
+- Efficiency: 92%
+- Waste: 0.8m³ (8%)
+```
+
+### 5.5 Phased Roadmap
+
+| Phase | Focus | Features |
+|-------|-------|----------|
+| **Phase 1** | Production | Producer login, inventory, production tracking, efficiency |
+| **Phase 2** | Suppliers | Supplier orders, deliveries, invoices |
+| **Phase 3** | Admin Core | Full order management, CRM, documents |
+| **Phase 4** | Clients | Client portal, self-service, quotes |
+| **Phase 5** | Advanced | AI chatbot, multi-language, analytics |
+
+---
+
+## Analysis Complete
 
 ---
 
@@ -846,8 +1029,34 @@ Document
 | Q3.1-3.4 | Core Entities, Product Attributes, Transformation, Inventory | ✅ Answered |
 | Q3.5-3.7 | Units, Order Flow, Pricing | ✅ Answered |
 | Q3.8-3.10 | Cost Tracking, Quality, Documents | ✅ Answered |
-| Area 4 | Integration Points | 🔄 Starting |
+| Area 4 | Integration Points | ✅ Complete |
+| - | CRM functionality added (replaces Pipedrive) | ✅ Captured |
+| - | Gmail integration for email tracking | ✅ Captured |
+| - | Shipping quotation system | ✅ Captured |
+| Area 5 | MVP Prioritization | ✅ Complete |
+| - | MVP defined: Production tracking first | ✅ Captured |
+| - | Phased roadmap agreed | ✅ Captured |
 
 ---
 
-*This document is updated incrementally during the analysis session.*
+## Analysis Summary
+
+**Total Areas Covered:** 5
+**Total Questions Answered:** 30+
+**Design Principles Discovered:** 7
+**Key Decisions Made:**
+- One Portal with function-based access
+- RESTful API architecture
+- Built-in CRM (replaces Pipedrive)
+- AI-powered shipping quotes (no carrier portal)
+- Production tracking as MVP
+
+**Next Steps:**
+1. Create Platform Product Brief
+2. Create Platform PRD
+3. Create Platform Architecture
+4. Build MVP (Production Tracking)
+
+---
+
+*Analysis session completed 2026-01-20*
