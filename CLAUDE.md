@@ -138,7 +138,7 @@ All generated documents go to `_bmad-output/` following the pattern:
 
 Project configuration in `_bmad/bmm/config.yaml`:
 - `user_name`: Nils
-- `project_name`: Timber-International
+- `project_name`: Timber World
 - `communication_language`: English
 - `output_folder`: `{project-root}/_bmad-output`
 

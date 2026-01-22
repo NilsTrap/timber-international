@@ -77,6 +77,111 @@ export type Database = {
         }
         Update: Partial<Database['public']['Tables']['admin_users']['Insert']>
       }
+      // Portal MVP Tables
+      portal_users: {
+        Row: {
+          id: string
+          auth_user_id: string | null
+          email: string
+          name: string
+          role: 'admin' | 'producer'
+          created_at: string
+          updated_at: string
+        }
+        Insert: Omit<Database['public']['Tables']['portal_users']['Row'], 'id' | 'created_at' | 'updated_at'> & {
+          id?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['portal_users']['Insert']>
+      }
+      portal_products: {
+        Row: {
+          id: string
+          name: string
+          species: string | null
+          moisture_state: string | null
+          dimensions: string | null
+          unit: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: Omit<Database['public']['Tables']['portal_products']['Row'], 'id' | 'created_at' | 'updated_at'> & {
+          id?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['portal_products']['Insert']>
+      }
+      portal_inventory: {
+        Row: {
+          id: string
+          product_id: string
+          quantity: number
+          cubic_meters: number | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: Omit<Database['public']['Tables']['portal_inventory']['Row'], 'id' | 'created_at' | 'updated_at'> & {
+          id?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['portal_inventory']['Insert']>
+      }
+      portal_processes: {
+        Row: {
+          id: string
+          name: string
+          is_standard: boolean
+          created_at: string
+        }
+        Insert: Omit<Database['public']['Tables']['portal_processes']['Row'], 'id' | 'created_at'> & {
+          id?: string
+          created_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['portal_processes']['Insert']>
+      }
+      portal_production_entries: {
+        Row: {
+          id: string
+          process_id: string
+          production_date: string
+          status: 'draft' | 'validated'
+          notes: string | null
+          total_input_m3: number | null
+          total_output_m3: number | null
+          outcome_percentage: number | null
+          waste_percentage: number | null
+          created_at: string
+          updated_at: string
+          validated_at: string | null
+        }
+        Insert: Omit<Database['public']['Tables']['portal_production_entries']['Row'], 'id' | 'created_at' | 'updated_at'> & {
+          id?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['portal_production_entries']['Insert']>
+      }
+      portal_production_lines: {
+        Row: {
+          id: string
+          production_entry_id: string
+          line_type: 'input' | 'output'
+          product_id: string | null
+          product_name: string | null
+          quantity: number
+          cubic_meters: number | null
+          dimensions: string | null
+          created_at: string
+        }
+        Insert: Omit<Database['public']['Tables']['portal_production_lines']['Row'], 'id' | 'created_at'> & {
+          id?: string
+          created_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['portal_production_lines']['Insert']>
+      }
     }
     Views: Record<string, never>
     Functions: {

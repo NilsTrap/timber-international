@@ -1,0 +1,81 @@
+# generated: 2026-01-22
+# project: Timber-World
+# project_key: producer-mvp
+# tracking_system: file-system
+# story_location: _bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: 2026-01-22
+project: Timber-World
+project_key: producer-mvp
+tracking_system: file-system
+story_location: _bmad-output/implementation-artifacts
+
+development_status:
+  # Epic 1: Portal Foundation & User Access
+  epic-1: done
+  1-1-portal-app-database-foundation: done
+  1-2-user-registration: done
+  1-3-user-login-session: done
+  1-4-role-based-navigation: done
+  1-5-user-profile-management: done
+  epic-1-retrospective: optional
+
+  # Epic 2: Admin Inventory Management
+  epic-2: backlog
+  2-1-product-management: backlog
+  2-2-record-inventory-sent-to-producer: backlog
+  2-3-admin-inventory-overview: backlog
+  epic-2-retrospective: optional
+
+  # Epic 3: Producer Inventory View
+  epic-3: backlog
+  3-1-producer-inventory-table: backlog
+  3-2-inventory-filtering-search: backlog
+  epic-3-retrospective: optional
+
+  # Epic 4: Production Entry & Tracking
+  epic-4: backlog
+  4-1-create-production-entry-with-process-selection: backlog
+  4-2-add-production-inputs-from-inventory: backlog
+  4-3-add-production-outputs: backlog
+  4-4-live-production-calculations: backlog
+  4-5-validate-production-update-inventory: backlog
+  4-6-custom-process-management: backlog
+  epic-4-retrospective: optional
+
+  # Epic 5: Production Insights & History
+  epic-5: backlog
+  5-1-production-history-table: backlog
+  5-2-edit-production-entry: backlog
+  5-3-producer-dashboard-metrics: backlog
+  5-4-admin-efficiency-reports: backlog
+  epic-5-retrospective: optional

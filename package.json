@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "turbo run dev",
     "dev:marketing": "turbo run dev --filter=@timber/marketing",
+    "dev:portal": "turbo run dev --filter=@timber/portal",
     "dev:client": "turbo run dev --filter=@timber/client-portal",
     "dev:producer": "turbo run dev --filter=@timber/producer-portal",
     "build": "turbo run build",
