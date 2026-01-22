@@ -52,7 +52,7 @@ development_status:
   # Epic 2: Admin Inventory Management (Updated for Inventory Data Model v2)
   epic-2: in-progress
   2-1-reference-data-management: done
-  2-2-parties-management: backlog
+  2-2-organizations-management: done
   2-3-create-shipment-add-packages: backlog
   2-4-shipment-inventory-overview: backlog
   epic-2-retrospective: optional

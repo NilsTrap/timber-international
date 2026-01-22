@@ -361,7 +361,7 @@ NFR46: Loading states for operations > 1 second
 
 ## Epic 2: Admin Inventory Management
 
-**Goal:** Admin can manage reference data, parties, and record inventory shipments to producer facilities
+**Goal:** Admin can manage reference data, organisations, and record inventory shipments to producer facilities
 
 **FRs covered:** FR30, FR33
 
@@ -414,40 +414,40 @@ NFR46: Loading states for operations > 1 second
 
 ---
 
-### Story 2.2: Parties Management
+### Story 2.2: Organisations Management
 
 **As an** Admin,
-**I want** to manage parties (organizations like Timber World, producers),
+**I want** to manage organisations (such as Timber World, producers),
 **So that** I can create shipments between them.
 
 **Acceptance Criteria:**
 
 **Given** I am logged in as Admin
-**When** I navigate to Admin > Parties
-**Then** I see a table of all parties with columns: Code, Name, Status, Actions
+**When** I navigate to Admin > Organisations
+**Then** I see a table of all organisations with columns: Code, Name, Status, Actions
 
-**Given** I am viewing the parties table
-**When** I click "Add Party"
-**Then** I see a form with fields: Code (3 uppercase letters, required), Name (required)
+**Given** I am viewing the organisations table
+**When** I click "Add Organisation"
+**Then** I see a form with fields: Code (first character letter, followed by 2 letters or numbers, required), Name (required)
 
-**Given** I am adding a new party
-**When** I enter a valid 3-letter code and name
-**Then** the party is created
-**And** I see a success toast "Party created"
-**And** the party appears in the table
+**Given** I am adding a new organisation
+**When** I enter a valid 3-character code and name
+**Then** the organisation is created
+**And** I see a success toast "Organisation created"
+**And** the organisation appears in the table
 
-**Given** I try to add a party with an existing code
+**Given** I try to add an organisation with an existing code
 **When** I click Save
-**Then** I see an error "Party code already exists"
+**Then** I see an error "Organisation code already exists"
 
-**Given** I am editing a party
+**Given** I am editing an organisation
 **When** I modify the name and save
 **Then** the name is updated
 **And** the code remains unchanged (immutable)
 
-**Given** I try to deactivate a party with existing shipments
+**Given** I try to deactivate an organisation with existing shipments
 **When** I click Deactivate
-**Then** I see a warning "This party has X shipments and cannot be deleted"
+**Then** I see a warning "This organisation has X shipments and cannot be deleted"
 **And** I can only deactivate (not delete)
 
 ---
@@ -462,10 +462,10 @@ NFR46: Loading states for operations > 1 second
 
 **Given** I am logged in as Admin
 **When** I navigate to Inventory > New Shipment
-**Then** I see a shipment form with: From Party (dropdown), To Party (dropdown), Date (default today)
+**Then** I see a shipment form with: From Organisation (dropdown), To Organisation (dropdown), Date (default today)
 
 **Given** I am creating a shipment
-**When** I select From Party and To Party
+**When** I select From Organisation and To Organisation
 **Then** the shipment code is auto-generated and displayed (e.g., "TWP-INE-001")
 **And** I cannot edit the shipment code
 
@@ -583,7 +583,7 @@ NFR46: Loading states for operations > 1 second
 
 **Given** I am logged in as Producer
 **When** I navigate to Inventory
-**Then** I see a table of all packages at my facility (where to_party = my facility)
+**Then** I see a table of all packages at my facility (where to_organisation = my facility)
 **And** columns display: Package No, Shipment, Product, Species, Humidity, Type, Processing, Dimensions, Pieces, m³
 
 **Given** packages exist for my facility
@@ -596,7 +596,7 @@ NFR46: Loading states for operations > 1 second
 - All attributes (Product, Species, Humidity, Type, Processing, FSC, Quality)
 - Full dimensions (Thickness, Width, Length)
 - Quantities (Pieces, m³)
-- Shipment info (Code, Date, From party)
+- Shipment info (Code, Date, From organisation)
 **And** the view is read-only (Producer cannot edit inventory directly)
 
 **Given** no packages exist for my facility
