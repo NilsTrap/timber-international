@@ -71,9 +71,9 @@ NFR46: Loading states for operations > 1 second
 
 #### From Architecture (MVP Addendum)
 
-**Database Setup:**
-- Create 6 tables: users, products, inventory, processes, production_entries, production_lines
-- Seed standard processes: Multi-saw, Planing, Opti-cut, Gluing, Sanding, Finger Jointing
+**Database Setup (Inventory Data Model v2):**
+- Create 14 tables: portal_users, 7 reference tables (ref_product_names, ref_wood_species, ref_humidity, ref_types, ref_processing, ref_fsc, ref_quality), parties, shipments, inventory_packages, portal_processes, portal_production_entries, portal_production_lines
+- Seed reference data, standard processes, and initial parties (TWP, INE)
 - No RLS needed (single tenant)
 - No organization_id columns (single producer)
 
@@ -161,17 +161,20 @@ NFR46: Loading states for operations > 1 second
 ---
 
 ### Epic 2: Admin Inventory Management
-**User Outcome:** Admin can input inventory sent to producer facility and view all inventory levels
+**User Outcome:** Admin can manage reference data, organisations, create shipments with packages, and view all inventory levels
 
 **FRs covered:** FR30, FR33
 
-**Additional Requirements:**
-- Product management (add/edit products)
-- Inventory input form (record materials sent to producer)
-- Admin inventory overview table
-- Inventory totals and filtering
+**Data Model:** Uses Inventory Data Model v2 (flat shipment/package model)
 
-**Standalone Value:** Admin can record what materials were sent to the producer. Complete inventory input system.
+**Additional Requirements:**
+- Reference data management (7 dropdown tables)
+- Organisations management (parties with 3-character codes)
+- Shipment creation with auto-generated codes
+- Package entry with all attributes (7 dropdowns, dimensions, volume calculation)
+- Admin inventory overview with filtering
+
+**Standalone Value:** Admin can record what materials were sent to the producer via shipments and packages. Complete inventory input system.
 
 ---
 
@@ -320,7 +323,7 @@ NFR46: Loading states for operations > 1 second
 
 **Given** I am logged in as Admin
 **When** I view the dashboard
-**Then** I see navigation links: Dashboard, Inventory (manage), Products (manage)
+**Then** I see navigation links: Dashboard, Inventory, Reference Data, Organisations
 **And** the dashboard shows an "Admin Overview" header
 
 **Given** I am logged in as Producer

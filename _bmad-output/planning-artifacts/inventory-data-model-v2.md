@@ -27,8 +27,8 @@ This document specifies the new inventory data model for Timber World Platform. 
 
 | Part | Description | Example |
 |------|-------------|---------|
-| FROM | 3-letter party code (sender) | TWP |
-| TO | 3-letter party code (receiver) | INE |
+| FROM | 3-letter organisation code (sender) | TWP |
+| TO | 3-letter organisation code (receiver) | INE |
 | NUMBER | 3-digit sequential number | 001 |
 
 **Examples:**
@@ -37,7 +37,7 @@ This document specifies the new inventory data model for Timber World Platform. 
 - `TWP-INE-002` = Timber World Platform → INERCE, shipment #2
 
 **Rules:**
-- Number is sequential per party pair (TWP-INE has its own sequence)
+- Number is sequential per organisation pair (TWP-INE has its own sequence)
 - System auto-generates based on source and destination selection
 - Immutable once created
 
@@ -104,7 +104,7 @@ CREATE TABLE ref_[name] (
 
 ---
 
-## Parties Table
+## Parties Table (UI: "Organisations")
 
 ### Schema
 
@@ -128,9 +128,9 @@ CREATE TABLE parties (
 
 ### Rules
 
-- Code must be exactly 3 uppercase letters
-- Admin can add new parties
-- Cannot delete parties with existing shipments
+- Code must be exactly 3 characters (first character letter, followed by 2 letters or numbers, uppercase)
+- Admin can add new organisations
+- Cannot delete organisations with existing shipments
 
 ---
 
@@ -177,12 +177,12 @@ async function generateShipmentCode(fromPartyId: string, toPartyId: string): Pro
 
 ---
 
-## Inventory (Packages) Table
+## Inventory Packages Table
 
 ### Schema
 
 ```sql
-CREATE TABLE inventory (
+CREATE TABLE inventory_packages (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
   -- Shipment Reference
@@ -217,10 +217,10 @@ CREATE TABLE inventory (
   UNIQUE(shipment_id, package_sequence)
 );
 
-CREATE INDEX idx_inventory_shipment ON inventory(shipment_id);
-CREATE INDEX idx_inventory_package ON inventory(package_number);
-CREATE INDEX idx_inventory_product_name ON inventory(product_name_id);
-CREATE INDEX idx_inventory_species ON inventory(wood_species_id);
+CREATE INDEX idx_inventory_packages_shipment ON inventory_packages(shipment_id);
+CREATE INDEX idx_inventory_packages_number ON inventory_packages(package_number);
+CREATE INDEX idx_inventory_packages_product ON inventory_packages(product_name_id);
+CREATE INDEX idx_inventory_packages_species ON inventory_packages(wood_species_id);
 ```
 
 ### Package Number Generation
@@ -354,7 +354,7 @@ INSERT INTO ref_product_names (value, sort_order) VALUES
 ```sql
 CREATE TABLE parties (...);
 CREATE TABLE shipments (...);
-CREATE TABLE inventory (...);
+CREATE TABLE inventory_packages (...);
 ```
 
 ### Step 3: Seed Initial Data
@@ -395,14 +395,14 @@ Each page has:
 - Deactivate option (cannot delete if in use)
 - Drag-and-drop reordering
 
-### Parties Management
+### Organisations Management
 
-Admin page to manage parties: `/admin/parties`
+Admin page to manage organisations: `/admin/organisations`
 
-- Table of all parties (code, name, active)
-- Add new party
-- Edit party name (code is immutable)
-- Deactivate party
+- Table of all organisations (code, name, active)
+- Add new organisation
+- Edit organisation name (code is immutable)
+- Deactivate organisation
 
 ---
 
@@ -410,16 +410,18 @@ Admin page to manage parties: `/admin/parties`
 
 ### Epic 2: Admin Inventory Management
 
-**Story 2.1** (Product Management) → **Story 2.1** (Reference Data Management)
+**Story 2.1** (Reference Data Management)
 - Manage all dropdown reference tables
-- Manage parties
 
-**Story 2.2** (Record Inventory Sent to Producer) → **Story 2.2** (Create Shipment & Add Packages)
-- Create new shipment (select from/to parties)
+**Story 2.2** (Organisations Management)
+- Manage organisations (formerly "parties" in DB terms)
+
+**Story 2.3** (Create Shipment & Add Packages)
+- Create new shipment (select from/to organisations)
 - Add packages with all attributes
 - Horizontal entry form with copy row feature
 
-**Story 2.3** (Admin Inventory Overview) → **Story 2.3** (Shipment & Inventory Overview)
+**Story 2.4** (Shipment & Inventory Overview)
 - View all shipments with package counts
 - View all inventory packages with filtering
 - Filter by shipment, product name, species, etc.
@@ -427,7 +429,7 @@ Admin page to manage parties: `/admin/parties`
 ### Epic 3: Producer Inventory View
 
 **Story 3.1** (Producer Inventory Table)
-- Shows packages for their facility (to_party = producer)
+- Shows packages for their facility (to_party_id = producer's organisation)
 - Same columns as admin view
 - Read-only
 

@@ -1319,8 +1319,16 @@ apps/portal/src/
 │       │   ├── page.tsx           # New/edit production entry
 │       │   └── [id]/
 │       │       └── page.tsx       # Edit existing entry
-│       └── history/
-│           └── page.tsx           # Production history list
+│       ├── history/
+│       │   └── page.tsx           # Production history list
+│       └── admin/                 # Admin-only functions
+│           ├── reference/
+│           │   └── page.tsx       # Reference data management
+│           ├── organisations/
+│           │   └── page.tsx       # Organisations management
+│           └── inventory/
+│               └── new-shipment/
+│                   └── page.tsx   # Create shipment + packages
 │
 ├── features/
 │   ├── auth/
@@ -1328,6 +1336,53 @@ apps/portal/src/
 │   │   │   └── login.ts
 │   │   └── components/
 │   │       └── LoginForm.tsx
+│   │
+│   ├── reference-data/            # Admin-managed dropdown options
+│   │   ├── actions/
+│   │   │   ├── getReferenceOptions.ts
+│   │   │   ├── createReferenceOption.ts
+│   │   │   ├── updateReferenceOption.ts
+│   │   │   ├── toggleReferenceOption.ts
+│   │   │   └── index.ts
+│   │   ├── components/
+│   │   │   ├── ReferenceDataManager.tsx
+│   │   │   ├── ReferenceTableSelector.tsx
+│   │   │   ├── ReferenceOptionsTable.tsx
+│   │   │   ├── ReferenceOptionForm.tsx
+│   │   │   └── index.ts
+│   │   └── types.ts
+│   │
+│   ├── organisations/             # Organisation (party) management
+│   │   ├── actions/
+│   │   │   ├── getOrganisations.ts
+│   │   │   ├── createOrganisation.ts
+│   │   │   ├── updateOrganisation.ts
+│   │   │   ├── toggleOrganisation.ts
+│   │   │   ├── deleteOrganisation.ts
+│   │   │   ├── getOrgShipmentCount.ts
+│   │   │   └── index.ts
+│   │   ├── components/
+│   │   │   ├── OrganisationsTable.tsx
+│   │   │   ├── OrganisationForm.tsx
+│   │   │   └── index.ts
+│   │   ├── schemas/
+│   │   │   └── organisation.ts
+│   │   └── types.ts
+│   │
+│   ├── shipments/                 # Shipment + package creation
+│   │   ├── actions/
+│   │   │   ├── getActiveOrganisations.ts
+│   │   │   ├── getShipmentCodePreview.ts
+│   │   │   ├── getReferenceDropdowns.ts
+│   │   │   ├── createShipment.ts
+│   │   │   └── index.ts
+│   │   ├── components/
+│   │   │   ├── ShipmentHeader.tsx
+│   │   │   ├── PackageEntryTable.tsx
+│   │   │   └── index.ts
+│   │   ├── schemas/
+│   │   │   └── shipment.ts
+│   │   └── types.ts
 │   │
 │   ├── inventory/
 │   │   ├── actions/
@@ -1377,7 +1432,7 @@ apps/portal/src/
 | `features/notifications/` | Notification system | Deferred |
 | `app/api/pdf/` | PDF generation | Deferred |
 | `app/api/webhooks/` | External integrations | Deferred |
-| `app/(portal)/admin/` | Admin functions | Deferred |
+| `app/(portal)/admin/` | Admin functions | ✅ Partially implemented (reference-data, organisations) |
 | `app/(portal)/suppliers/` | Supplier management | Deferred |
 | `app/(portal)/clients/` | Client management | Deferred |
 
@@ -1702,7 +1757,7 @@ CREATE TABLE ref_quality (
 );
 ```
 
-### Parties Table
+### Parties Table (UI: "Organisations")
 
 ```sql
 CREATE TABLE parties (
@@ -1735,10 +1790,10 @@ CREATE TABLE shipments (
 );
 ```
 
-### Inventory (Packages) Table
+### Inventory Packages Table
 
 ```sql
-CREATE TABLE inventory (
+CREATE TABLE inventory_packages (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
   -- Shipment Reference
@@ -1765,9 +1820,14 @@ CREATE TABLE inventory (
   volume_m3 DECIMAL,
   volume_is_calculated BOOLEAN DEFAULT false,
 
+  -- Status for production tracking
+  status TEXT DEFAULT 'available' CHECK (status IN ('available', 'reserved', 'consumed', 'produced')),
+
   notes TEXT,
   created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now()
+  updated_at TIMESTAMPTZ DEFAULT now(),
+
+  UNIQUE(shipment_id, package_sequence)
 );
 ```
 
@@ -1806,9 +1866,9 @@ CREATE TABLE inventory (
 | Table | Purpose |
 |-------|---------|
 | portal_users | User accounts with role |
-| parties | Organizations (TWP, INE, etc.) |
+| parties | Organisations (TWP, INE, etc.) |
 | shipments | Shipment records with auto-generated codes |
-| inventory | Package records with all attributes |
+| inventory_packages | Package records with all attributes |
 | ref_product_names | Dropdown: Product names |
 | ref_wood_species | Dropdown: Wood species |
 | ref_humidity | Dropdown: Humidity options |
@@ -1829,7 +1889,7 @@ CREATE TABLE inventory (
 ### Admin Features (New/Updated)
 
 1. **Reference Data Management** - CRUD for all dropdown tables
-2. **Parties Management** - CRUD for parties
+2. **Organisations Management** - CRUD for organisations
 3. **Shipment Creation** - Create shipments with auto-generated codes
 4. **Package Entry** - Horizontal spreadsheet-like entry form
 
