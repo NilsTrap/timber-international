@@ -9,13 +9,13 @@ import {
   History,
   Boxes,
   Settings,
+  User,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
  * Icon name to component mapping
- * Icons must be imported in this Client Component to cross the Server/Client boundary
  */
 const ICON_MAP: Record<string, LucideIcon> = {
   LayoutDashboard,
@@ -24,23 +24,25 @@ const ICON_MAP: Record<string, LucideIcon> = {
   History,
   Boxes,
   Settings,
+  User,
 };
 
 export type IconName = keyof typeof ICON_MAP;
 
-interface NavLinkProps {
+interface SidebarLinkProps {
   href: string;
   label: string;
   iconName: IconName;
+  isCollapsed: boolean;
 }
 
 /**
- * Navigation Link with Active State
+ * Sidebar Navigation Link
  *
- * Client component that highlights the current active route.
- * Used by TopNav for role-based navigation items.
+ * Displays an icon (always) and label (when expanded).
+ * Highlights when the current route matches.
  */
-export function NavLink({ href, label, iconName }: NavLinkProps) {
+export function SidebarLink({ href, label, iconName, isCollapsed }: SidebarLinkProps) {
   const pathname = usePathname();
   const isActive = pathname === href || pathname.startsWith(`${href}/`);
   const Icon = ICON_MAP[iconName] || LayoutDashboard;
@@ -48,17 +50,19 @@ export function NavLink({ href, label, iconName }: NavLinkProps) {
   return (
     <Link
       href={href}
-      aria-label={`Navigate to ${label}`}
+      aria-label={isCollapsed ? label : undefined}
       aria-current={isActive ? "page" : undefined}
+      title={isCollapsed ? label : undefined}
       className={cn(
-        "flex items-center space-x-2 transition-colors",
+        "flex items-center rounded-md px-3 py-2 text-sm transition-colors",
+        isCollapsed ? "justify-center" : "gap-3",
         isActive
-          ? "text-foreground font-medium"
-          : "text-foreground/60 hover:text-foreground"
+          ? "bg-primary/10 text-primary font-medium"
+          : "text-foreground/60 hover:bg-accent hover:text-foreground"
       )}
     >
-      <Icon className="h-4 w-4" />
-      <span>{label}</span>
+      <Icon className="h-5 w-5 shrink-0" />
+      {!isCollapsed && <span>{label}</span>}
     </Link>
   );
 }

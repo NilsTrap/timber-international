@@ -1,4 +1,4 @@
-import { TopNav } from "@/components/layout/TopNav";
+import { SidebarWrapper } from "@/components/layout/SidebarWrapper";
 
 export default function PortalLayout({
   children,
@@ -6,10 +6,12 @@ export default function PortalLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-background">
-      <TopNav />
-      <main className="container mx-auto px-4 py-8">
-        {children}
+    <div className="flex h-screen bg-background">
+      <SidebarWrapper />
+      <main className="flex-1 overflow-y-auto">
+        <div className="container mx-auto px-6 py-8">
+          {children}
+        </div>
       </main>
     </div>
   );

@@ -371,20 +371,39 @@ type ActionResult<T> =
 - Role-specific layouts with permission-based rendering
 - Compound components for complex UI patterns
 
-**Dashboard Layout Pattern:**
+**Dashboard Layout Pattern (Implemented):**
+
+The portal uses a **collapsible left sidebar** navigation:
+
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  Header: Logo, User menu, Notifications                     │
-├────────────┬────────────────────────────────────────────────┤
+┌────────────┬────────────────────────────────────────────────┐
 │            │                                                │
 │  Sidebar   │  Main Content Area                            │
-│  (role-    │                                                │
-│  based     │  - Page content based on current function     │
-│  functions)│  - Breadcrumbs for navigation                 │
-│            │  - Action buttons context-aware               │
-│            │                                                │
+│  ┌──────┐  │                                                │
+│  │ Logo │  │  - Page content based on current function     │
+│  ├──────┤  │  - Role-based navigation items                │
+│  │ Nav  │  │  - Action buttons context-aware               │
+│  │ Items│  │                                                │
+│  ├──────┤  │                                                │
+│  │Profile│ │                                                │
+│  │Logout │ │                                                │
+│  ├──────┤  │                                                │
+│  │Toggle│  │                                                │
+│  └──────┘  │                                                │
 └────────────┴────────────────────────────────────────────────┘
 ```
+
+**Sidebar Features:**
+- Collapsible: Icons only (64px) or icons + labels (256px)
+- Collapse state persisted to localStorage
+- Role-based navigation items (Admin sees different items than Producer)
+- Profile and Logout in sidebar footer
+- Toggle button at bottom
+
+**Components:**
+- `Sidebar.tsx` - Main collapsible client component
+- `SidebarLink.tsx` - Navigation link with icon support
+- `SidebarWrapper.tsx` - Server component for session/role
 
 **Route Structure:**
 ```
@@ -817,10 +836,11 @@ timber-world/                           # Turborepo monorepo root
 │           │
 │           ├── components/             # Shared portal components
 │           │   ├── layout/
-│           │   │   ├── DashboardLayout.tsx
-│           │   │   ├── Sidebar.tsx
-│           │   │   ├── Header.tsx
-│           │   │   └── Breadcrumbs.tsx
+│           │   │   ├── Sidebar.tsx          # Collapsible sidebar (client)
+│           │   │   ├── SidebarLink.tsx      # Nav link component
+│           │   │   ├── SidebarWrapper.tsx   # Server component for session
+│           │   │   ├── TopNav.tsx           # Deprecated (replaced by Sidebar)
+│           │   │   └── NavLink.tsx          # Legacy nav link
 │           │   ├── data-table/
 │           │   │   ├── DataTable.tsx
 │           │   │   ├── Pagination.tsx
@@ -1332,9 +1352,10 @@ apps/portal/src/
 │
 ├── components/
 │   └── layout/
-│       ├── DashboardLayout.tsx
-│       ├── TopNav.tsx             # Simple top navigation
-│       └── MetricCard.tsx
+│       ├── Sidebar.tsx            # Collapsible sidebar navigation
+│       ├── SidebarLink.tsx        # Navigation link component
+│       ├── SidebarWrapper.tsx     # Server component for session
+│       └── TopNav.tsx             # Deprecated (replaced by Sidebar)
 │
 ├── lib/
 │   └── supabase/
@@ -1586,4 +1607,247 @@ All patterns from the main architecture still apply:
 **Scope:** Producer Portal MVP only (4 screens, 6 tables, 9 FRs)
 
 **Next Step:** Create Epics & Stories scoped to this MVP architecture
+
+---
+
+# Inventory Data Model v2 Addendum
+
+**Date Added:** 2026-01-22
+**Status:** ACTIVE - Replaces original product-based inventory model
+**Reference:** `_bmad-output/planning-artifacts/inventory-data-model-v2.md`
+
+---
+
+## Overview
+
+This addendum documents a significant change to the inventory data model. The original **Product Catalog + Inventory** model is replaced with a **Flat Shipment/Package** model.
+
+### Key Changes
+
+| Original Model | New Model |
+|----------------|-----------|
+| Products table (catalog) | No product catalog |
+| Inventory references product_id | Inventory contains all attributes inline |
+| Free-text product attributes | Admin-managed dropdown options |
+| Manual codes | Auto-generated shipment/package codes |
+
+---
+
+## New Database Schema
+
+### Reference Tables (Admin-Managed Dropdowns)
+
+```sql
+-- Product Names
+CREATE TABLE ref_product_names (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  value TEXT NOT NULL UNIQUE,
+  sort_order INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Wood Species
+CREATE TABLE ref_wood_species (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  value TEXT NOT NULL UNIQUE,
+  sort_order INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Humidity Options
+CREATE TABLE ref_humidity (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  value TEXT NOT NULL UNIQUE,
+  sort_order INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Types (FJ, Full stave)
+CREATE TABLE ref_types (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  value TEXT NOT NULL UNIQUE,
+  sort_order INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Processing Options
+CREATE TABLE ref_processing (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  value TEXT NOT NULL UNIQUE,
+  sort_order INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- FSC Certification
+CREATE TABLE ref_fsc (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  value TEXT NOT NULL UNIQUE,
+  sort_order INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Quality Grades
+CREATE TABLE ref_quality (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  value TEXT NOT NULL UNIQUE,
+  sort_order INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+### Parties Table
+
+```sql
+CREATE TABLE parties (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  code CHAR(3) NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Initial data
+INSERT INTO parties (code, name) VALUES
+  ('TWP', 'Timber World Platform'),
+  ('INE', 'INERCE');
+```
+
+### Shipments Table
+
+```sql
+CREATE TABLE shipments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  shipment_code TEXT NOT NULL UNIQUE,      -- "TWP-INE-001"
+  shipment_number INTEGER NOT NULL,        -- Global sequential
+  from_party_id UUID REFERENCES parties(id) NOT NULL,
+  to_party_id UUID REFERENCES parties(id) NOT NULL,
+  shipment_date DATE NOT NULL DEFAULT CURRENT_DATE,
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  CONSTRAINT different_parties CHECK (from_party_id != to_party_id)
+);
+```
+
+### Inventory (Packages) Table
+
+```sql
+CREATE TABLE inventory (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+  -- Shipment Reference
+  shipment_id UUID REFERENCES shipments(id) NOT NULL,
+  package_number TEXT NOT NULL UNIQUE,     -- "TWP-001-001"
+  package_sequence INTEGER NOT NULL,
+
+  -- Dropdown Fields (Foreign Keys)
+  product_name_id UUID REFERENCES ref_product_names(id),
+  wood_species_id UUID REFERENCES ref_wood_species(id),
+  humidity_id UUID REFERENCES ref_humidity(id),
+  type_id UUID REFERENCES ref_types(id),
+  processing_id UUID REFERENCES ref_processing(id),
+  fsc_id UUID REFERENCES ref_fsc(id),
+  quality_id UUID REFERENCES ref_quality(id),
+
+  -- Dimension Fields (Number or Range as TEXT)
+  thickness TEXT,                          -- "40" or "40-50"
+  width TEXT,
+  length TEXT,
+
+  -- Quantity Fields
+  pieces TEXT,                             -- Number or "-" for uncountable
+  volume_m3 DECIMAL,
+  volume_is_calculated BOOLEAN DEFAULT false,
+
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+---
+
+## Code Formats
+
+### Shipment Code: `[FROM]-[TO]-[NUMBER]`
+
+- `TWP-INE-001` = Timber World → INERCE, shipment #1
+- `INE-TWP-001` = INERCE → Timber World, shipment #1
+
+### Package Number: `TWP-[SHIPMENT]-[PACKAGE]`
+
+- `TWP-001-001` = Global shipment #1, Package #1
+- `TWP-001-002` = Global shipment #1, Package #2
+
+---
+
+## Initial Reference Data
+
+| Table | Values |
+|-------|--------|
+| ref_product_names | Unedged boards, Edged boards, Strips, Solid wood panels |
+| ref_wood_species | Oak, Ash, Birch, Pine |
+| ref_humidity | Fresh cut, Air dried, KD 7-9%, KD 9-11% |
+| ref_types | FJ, Full stave |
+| ref_processing | Rough sawn, Calibrated, Planed, Opticut, Sorted, Unsorted, Varnished, Waxed, Oiled, Sanded |
+| ref_fsc | FSC 100%, FSC Credit Mix, No |
+| ref_quality | AA, AV, AS, BC, CC, ABC, Insects, Defected |
+
+---
+
+## Tables Summary (Updated)
+
+| Table | Purpose |
+|-------|---------|
+| portal_users | User accounts with role |
+| parties | Organizations (TWP, INE, etc.) |
+| shipments | Shipment records with auto-generated codes |
+| inventory | Package records with all attributes |
+| ref_product_names | Dropdown: Product names |
+| ref_wood_species | Dropdown: Wood species |
+| ref_humidity | Dropdown: Humidity options |
+| ref_types | Dropdown: Types (FJ, Full stave) |
+| ref_processing | Dropdown: Processing methods |
+| ref_fsc | Dropdown: FSC certification |
+| ref_quality | Dropdown: Quality grades |
+| portal_processes | Production process types |
+| portal_production_entries | Production records |
+| portal_production_lines | Production input/output lines |
+
+**Total: 14 tables** (was 6 in original MVP)
+
+---
+
+## Impact on Features
+
+### Admin Features (New/Updated)
+
+1. **Reference Data Management** - CRUD for all dropdown tables
+2. **Parties Management** - CRUD for parties
+3. **Shipment Creation** - Create shipments with auto-generated codes
+4. **Package Entry** - Horizontal spreadsheet-like entry form
+
+### Producer Features (Updated)
+
+1. **View Inventory** - Shows packages received (all attributes)
+2. **Production Inputs** - Select packages (not products) as inputs
+3. **Production Outputs** - Creates new packages with inherited attributes
+
+---
+
+## Migration Notes
+
+The original `portal_products` table is deprecated. The new model does not use a product catalog.
+
+For existing Story 2.1 code (Product Management), it should be replaced with Reference Data Management.
+
+---
+
+**Full Specification:** See `_bmad-output/planning-artifacts/inventory-data-model-v2.md`
 

@@ -20,7 +20,7 @@ interface NavItem {
 const ADMIN_NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", iconName: "LayoutDashboard" },
   { href: "/inventory", label: "Inventory", iconName: "Package" },
-  { href: "/products", label: "Products", iconName: "Boxes" },
+  { href: "/admin/reference", label: "Reference Data", iconName: "Settings" },
 ];
 
 /**

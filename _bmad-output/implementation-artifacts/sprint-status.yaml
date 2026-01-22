@@ -49,11 +49,12 @@ development_status:
   1-5-user-profile-management: done
   epic-1-retrospective: optional
 
-  # Epic 2: Admin Inventory Management
-  epic-2: backlog
-  2-1-product-management: backlog
-  2-2-record-inventory-sent-to-producer: backlog
-  2-3-admin-inventory-overview: backlog
+  # Epic 2: Admin Inventory Management (Updated for Inventory Data Model v2)
+  epic-2: in-progress
+  2-1-reference-data-management: done
+  2-2-parties-management: backlog
+  2-3-create-shipment-add-packages: backlog
+  2-4-shipment-inventory-overview: backlog
   epic-2-retrospective: optional
 
   # Epic 3: Producer Inventory View

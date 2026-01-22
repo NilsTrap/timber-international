@@ -4,13 +4,16 @@ inputDocuments:
   - 'planning-artifacts/prd.md'
   - 'planning-artifacts/architecture.md'
   - 'planning-artifacts/ux-design-specification.md'
+  - 'planning-artifacts/inventory-data-model-v2.md'
 scope: 'Producer MVP'
 targetUsers: ['Admin (Timber World)', 'Producer (Factory Manager)']
 epicCount: 5
-storyCount: 20
+storyCount: 21
 workflowComplete: true
 completedDate: '2026-01-22'
 status: 'ready-for-implementation'
+lastUpdated: '2026-01-22'
+updateNote: 'Epic 2-4 updated for Inventory Data Model v2 (flat shipment/package model)'
 ---
 
 # Timber-World Producer MVP - Epic Breakdown
@@ -358,167 +361,268 @@ NFR46: Loading states for operations > 1 second
 
 ## Epic 2: Admin Inventory Management
 
-**Goal:** Admin can input inventory sent to producer facility and view all inventory levels
+**Goal:** Admin can manage reference data, parties, and record inventory shipments to producer facilities
 
 **FRs covered:** FR30, FR33
 
+**Data Model:** Uses Inventory Data Model v2 (flat shipment/package model)
+
 ---
 
-### Story 2.1: Product Management
+### Story 2.1: Reference Data Management
 
 **As an** Admin,
-**I want** to create and manage products in the catalog,
-**So that** I can track different material types in inventory.
+**I want** to manage all dropdown options (product names, species, humidity, etc.),
+**So that** users can select from consistent, controlled lists when entering inventory.
 
 **Acceptance Criteria:**
 
 **Given** I am logged in as Admin
-**When** I navigate to Products page
-**Then** I see a table of all products with columns: Name, Species, Moisture State, Dimensions, Unit
-**And** I see an "Add Product" button
+**When** I navigate to Admin > Reference Data
+**Then** I see a menu of reference tables: Product Names, Wood Species, Humidity, Types, Processing, FSC, Quality
 
-**Given** I am on the Products page
-**When** I click "Add Product"
-**Then** I see a form with fields: Name (required), Species, Moisture State, Dimensions, Unit (default: pcs)
+**Given** I select a reference table (e.g., Wood Species)
+**When** the page loads
+**Then** I see a table with columns: Value, Sort Order, Status (Active/Inactive), Actions
+**And** I see an "Add" button
 
-**Given** I am adding a new product
-**When** I fill in valid product details and click Save
-**Then** the product is created in the `products` table
-**And** I see a success toast "Product created"
-**And** the product appears in the products table
+**Given** I am viewing a reference table
+**When** I click "Add"
+**Then** I see a form to add a new option with fields: Value (required)
+**And** I can save the new option
 
-**Given** I am viewing the products table
-**When** I click Edit on a product row
-**Then** I see a form pre-filled with the product's current values
-**And** I can update and save changes
+**Given** I am viewing a reference table
+**When** I click Edit on a row
+**Then** I can modify the value
+**And** changes are saved to the database
+**And** existing inventory using this value automatically reflects the change
 
-**Given** I try to create a product without a name
+**Given** I want to remove an option
+**When** I click Deactivate on a row
+**Then** the option is marked inactive (is_active = false)
+**And** the option no longer appears in dropdown selectors
+**And** existing inventory using this option retains the value
+
+**Given** I try to add a value that already exists
 **When** I click Save
-**Then** I see a validation error "Product name is required"
+**Then** I see an error "This value already exists"
+
+**Given** I want to reorder options
+**When** I drag and drop rows
+**Then** the sort_order is updated
+**And** dropdowns show options in the new order
 
 ---
 
-### Story 2.2: Record Inventory Sent to Producer
+### Story 2.2: Parties Management
 
 **As an** Admin,
-**I want** to record inventory sent to the producer facility,
-**So that** the producer can see what materials they have available.
+**I want** to manage parties (organizations like Timber World, producers),
+**So that** I can create shipments between them.
 
 **Acceptance Criteria:**
 
 **Given** I am logged in as Admin
-**When** I navigate to Inventory > Add Inventory
-**Then** I see a form to record inventory
+**When** I navigate to Admin > Parties
+**Then** I see a table of all parties with columns: Code, Name, Status, Actions
 
-**Given** I am on the Add Inventory form
-**When** I select a product from the dropdown
-**Then** the product's default species, moisture state, and dimensions are pre-filled
-**And** I can override these values if needed
+**Given** I am viewing the parties table
+**When** I click "Add Party"
+**Then** I see a form with fields: Code (3 uppercase letters, required), Name (required)
 
-**Given** I am adding inventory
-**When** I enter quantity and optional cubic meters, then click Save
-**Then** a new record is created in the `inventory` table
-**And** I see a success toast "Inventory recorded"
-**And** the inventory totals are updated
+**Given** I am adding a new party
+**When** I enter a valid 3-letter code and name
+**Then** the party is created
+**And** I see a success toast "Party created"
+**And** the party appears in the table
 
-**Given** existing inventory for a product
-**When** I add more inventory of the same product
-**Then** the quantity is added to the existing inventory record (or creates new record)
-**And** totals reflect the combined amount
-
-**Given** I try to add inventory with quantity <= 0
+**Given** I try to add a party with an existing code
 **When** I click Save
-**Then** I see a validation error "Quantity must be greater than 0"
+**Then** I see an error "Party code already exists"
+
+**Given** I am editing a party
+**When** I modify the name and save
+**Then** the name is updated
+**And** the code remains unchanged (immutable)
+
+**Given** I try to deactivate a party with existing shipments
+**When** I click Deactivate
+**Then** I see a warning "This party has X shipments and cannot be deleted"
+**And** I can only deactivate (not delete)
 
 ---
 
-### Story 2.3: Admin Inventory Overview
+### Story 2.3: Create Shipment & Add Packages
 
 **As an** Admin,
-**I want** to view all inventory levels with filtering and totals,
-**So that** I can monitor what materials are at the producer facility.
+**I want** to create a shipment and add packages with all attributes,
+**So that** I can record inventory sent to the producer facility.
 
 **Acceptance Criteria:**
 
 **Given** I am logged in as Admin
-**When** I navigate to Inventory Overview
-**Then** I see a table showing all inventory grouped by product
-**And** columns display: Product Name, Species, Quantity, Cubic Meters, Last Updated
+**When** I navigate to Inventory > New Shipment
+**Then** I see a shipment form with: From Party (dropdown), To Party (dropdown), Date (default today)
 
-**Given** I am viewing the inventory overview
-**When** I look at the page
-**Then** I see summary cards showing: Total Products, Total Quantity, Total Cubic Meters
+**Given** I am creating a shipment
+**When** I select From Party and To Party
+**Then** the shipment code is auto-generated and displayed (e.g., "TWP-INE-001")
+**And** I cannot edit the shipment code
 
-**Given** inventory exists in the system
-**When** I use the search/filter bar
-**Then** I can filter by product name or species
-**And** the table updates to show matching items only
+**Given** I have created a shipment header
+**When** I proceed to add packages
+**Then** I see a horizontal/tabular entry form with columns:
+- Package No (auto-generated, read-only)
+- Product Name (dropdown)
+- Species (dropdown)
+- Humidity (dropdown)
+- Type (dropdown)
+- Processing (dropdown)
+- FSC (dropdown)
+- Quality (dropdown)
+- Thickness (text input)
+- Width (text input)
+- Length (text input)
+- Pieces (text input)
+- Volume m³ (auto-calculated or manual)
 
-**Given** I am viewing the inventory table
-**When** I click on column headers
-**Then** the table sorts by that column (ascending/descending toggle)
+**Given** I am entering a package row
+**When** I enter valid dimensions (e.g., "40", "100", "2000") and pieces (e.g., "500")
+**Then** Volume m³ is auto-calculated
+**And** I see the calculated value in the Volume field
 
-**Given** no inventory exists yet
-**When** I view the Inventory Overview
-**Then** I see an empty state message "No inventory recorded yet"
-**And** I see a link to "Add Inventory"
+**Given** I enter dimension ranges (e.g., "40-50")
+**When** the system detects a range
+**Then** Volume m³ is not auto-calculated
+**And** I can enter volume manually
+
+**Given** I have entered a package row
+**When** I click "Add Row"
+**Then** a new empty row is added with auto-generated package number (e.g., "TWP-001-002")
+
+**Given** I have entered a package row
+**When** I click "Copy Row"
+**Then** a new row is added with the same values as the previous row
+**And** the package number is auto-generated
+**And** Pieces and Volume fields are cleared (for manual entry)
+
+**Given** I have multiple package rows
+**When** I click "Save Shipment"
+**Then** the shipment is created in the database
+**And** all packages are created in the inventory table
+**And** I see a success toast "Shipment created with X packages"
+**And** I am redirected to the shipment detail page
+
+**Given** I enter pieces as "-" (not countable)
+**When** I try to save
+**Then** the system accepts "-" as valid
+**And** volume must be entered manually
+
+---
+
+### Story 2.4: Shipment & Inventory Overview
+
+**As an** Admin,
+**I want** to view all shipments and inventory packages,
+**So that** I can monitor what materials are at producer facilities.
+
+**Acceptance Criteria:**
+
+**Given** I am logged in as Admin
+**When** I navigate to Inventory > Overview
+**Then** I see two tabs: "Shipments" and "Packages"
+
+**Given** I am on the Shipments tab
+**When** I view the table
+**Then** I see columns: Shipment Code, From, To, Date, Package Count, Total m³
+**And** shipments are sorted by date (newest first)
+
+**Given** I click on a shipment row
+**When** the detail view opens
+**Then** I see all packages in that shipment with full attributes
+**And** I can edit or add more packages
+
+**Given** I am on the Packages tab
+**When** I view the table
+**Then** I see all packages with columns: Package No, Shipment, Product, Species, Humidity, Dimensions, Pieces, m³
+**And** I see summary cards: Total Packages, Total m³
+
+**Given** I am viewing the packages table
+**When** I use the filter bar
+**Then** I can filter by: Product Name, Species, Shipment Code
+**And** the table updates to show matching packages
+
+**Given** I click column headers
+**When** I click
+**Then** the table sorts by that column (toggle ascending/descending)
+
+**Given** no shipments exist
+**When** I view the overview
+**Then** I see an empty state "No shipments recorded yet"
+**And** I see a button "Create First Shipment"
 
 ---
 
 ## Epic 3: Producer Inventory View
 
-**Goal:** Producer can view current inventory at their facility with quantities and totals
+**Goal:** Producer can view current inventory (packages) at their facility with all attributes and totals
 
 **FRs covered:** FR32
+
+**Data Model:** Uses Inventory Data Model v2 (flat shipment/package model)
 
 ---
 
 ### Story 3.1: Producer Inventory Table
 
 **As a** Producer,
-**I want** to view the current inventory at my facility,
+**I want** to view all packages at my facility,
 **So that** I know what materials are available for production.
 
 **Acceptance Criteria:**
 
 **Given** I am logged in as Producer
 **When** I navigate to Inventory
-**Then** I see a table of all inventory at my facility
-**And** columns display: Product Name, Species, Moisture State, Dimensions, Quantity, Cubic Meters
+**Then** I see a table of all packages at my facility (where to_party = my facility)
+**And** columns display: Package No, Shipment, Product, Species, Humidity, Type, Processing, Dimensions, Pieces, m³
 
-**Given** inventory exists in the system
+**Given** packages exist for my facility
 **When** I view the inventory table
-**Then** I see a summary row showing totals per product type
-**And** I see overall totals: Total Items, Total Cubic Meters
+**Then** I see summary cards: Total Packages, Total Pieces, Total m³
 
 **Given** I am viewing the inventory table
-**When** I look at the page header
-**Then** I see summary cards with key metrics: Total Products, Total Quantity, Total m³
+**When** I click on a package row
+**Then** I see a detail panel/modal showing full package information:
+- All attributes (Product, Species, Humidity, Type, Processing, FSC, Quality)
+- Full dimensions (Thickness, Width, Length)
+- Quantities (Pieces, m³)
+- Shipment info (Code, Date, From party)
+**And** the view is read-only (Producer cannot edit inventory directly)
 
-**Given** no inventory exists yet
+**Given** no packages exist for my facility
 **When** I view the Inventory page
 **Then** I see an empty state message "No inventory available"
-**And** I see a note "Contact Admin to record incoming materials"
-
-**Given** I am viewing the inventory table
-**When** I click on a product row
-**Then** I see a detail panel/modal showing full product information
-**And** the view is read-only (Producer cannot edit inventory directly)
+**And** I see a note "Contact Admin to record incoming shipments"
 
 ---
 
 ### Story 3.2: Inventory Filtering & Search
 
 **As a** Producer,
-**I want** to filter and search inventory,
+**I want** to filter and search inventory by various attributes,
 **So that** I can quickly find specific materials for production.
 
 **Acceptance Criteria:**
 
 **Given** I am viewing the inventory table
 **When** I type in the search box
-**Then** the table filters to show products matching the search term
-**And** search matches against: Product Name, Species
+**Then** the table filters to show packages matching the search term
+**And** search matches against: Package No, Product Name, Species
+
+**Given** I am viewing the inventory table
+**When** I use the filter dropdowns
+**Then** I can filter by: Product Name, Species, Humidity, Type, Processing
+**And** the table updates to show only matching packages
 
 **Given** I am viewing the inventory table
 **When** I click on a column header
@@ -527,20 +631,26 @@ NFR46: Loading states for operations > 1 second
 
 **Given** I have filtered/sorted the inventory
 **When** I click "Clear Filters"
-**Then** the table resets to show all inventory in default order
+**Then** the table resets to show all packages in default order
 
 **Given** I filter inventory and no results match
 **When** I view the table
-**Then** I see a message "No inventory matches your search"
-**And** I see a "Clear Search" button
+**Then** I see a message "No packages match your filters"
+**And** I see a "Clear Filters" button
+
+**Given** I want to filter by shipment
+**When** I select a shipment from the Shipment filter dropdown
+**Then** only packages from that shipment are shown
 
 ---
 
 ## Epic 4: Production Entry & Tracking
 
-**Goal:** Producer can log production transformations (input → process → output) and commit to inventory
+**Goal:** Producer can log production transformations (input packages → process → output packages) and commit to inventory
 
 **FRs covered:** FR42, FR43, FR44
+
+**Data Model:** Uses Inventory Data Model v2 - inputs/outputs are packages with all attributes
 
 ---
 
@@ -578,31 +688,38 @@ NFR46: Loading states for operations > 1 second
 ### Story 4.2: Add Production Inputs from Inventory
 
 **As a** Producer,
-**I want** to select materials from inventory as production inputs,
-**So that** I can record what was consumed in the process.
+**I want** to select packages from inventory as production inputs,
+**So that** I can record what materials were consumed in the process.
 
 **Acceptance Criteria:**
 
 **Given** I am on a production entry form
 **When** I click "+ Add Input"
-**Then** I see a product selector showing available inventory items
-**And** each item shows: Product Name, Available Quantity, m³
+**Then** I see a package selector showing available inventory packages
+**And** each package shows: Package No, Product Name, Species, Dimensions, Available Pieces, m³
 
 **Given** I am adding an input
-**When** I select a product from inventory
-**Then** a new input line is added with the product pre-filled
-**And** I can enter quantity used (cannot exceed available inventory)
-**And** dimensions are inherited from the product but can be overridden
+**When** I select a package from inventory
+**Then** a new input line is added with all package attributes pre-filled:
+- Package No (reference)
+- Product Name, Species, Humidity, Type, Processing, FSC, Quality
+- Dimensions (Thickness, Width, Length)
+**And** I can enter pieces used (cannot exceed available pieces)
 
 **Given** I have added input lines
 **When** I view the inputs section
-**Then** I see all input lines with: Product, Quantity, Dimensions, m³
+**Then** I see all input lines with: Package No, Product, Dimensions, Pieces Used, m³
 **And** I see a running total of input m³
 **And** I can remove any input line by clicking delete
 
-**Given** I try to enter quantity greater than available
-**When** I blur the quantity field
-**Then** I see a validation error "Quantity exceeds available inventory"
+**Given** I try to enter pieces greater than available in package
+**When** I blur the pieces field
+**Then** I see a validation error "Pieces exceeds available inventory"
+
+**Given** I partially consume a package (use some but not all pieces)
+**When** production is validated
+**Then** the package's pieces are reduced by the consumed amount
+**And** the remaining pieces stay in inventory
 
 **Given** I have multiple inputs to add
 **When** I use keyboard shortcut Ctrl+I
@@ -613,29 +730,40 @@ NFR46: Loading states for operations > 1 second
 ### Story 4.3: Add Production Outputs
 
 **As a** Producer,
-**I want** to record the output products from production,
+**I want** to record the output packages from production,
 **So that** I can track what was created from the inputs.
 
 **Acceptance Criteria:**
 
 **Given** I have added inputs to a production entry
 **When** I move to the Outputs section
-**Then** output lines are auto-generated based on inputs
-**And** species and moisture state are inherited from inputs
-**And** I can adjust product name, quantity, and dimensions
+**Then** I see a horizontal/tabular entry form similar to shipment package entry
+**And** output lines can be auto-generated based on inputs (inherit attributes)
+
+**Given** I click "Auto-Generate from Inputs"
+**When** the system processes
+**Then** output lines are created with inherited attributes:
+- Product Name, Species, Humidity from inputs
+- Type and Processing may change based on process (e.g., after planing → "Planed")
+- Dimensions may be modified (e.g., thickness reduced after planing)
+**And** I can adjust all values as needed
+
+**Given** I am adding output lines manually
+**When** I click "+ Add Output"
+**Then** a new row is added with all attribute dropdowns:
+- Product Name, Species, Humidity, Type, Processing, FSC, Quality (dropdowns)
+- Thickness, Width, Length (text inputs)
+- Pieces, m³ (text inputs)
+**And** the package number is auto-generated (internal production number)
 
 **Given** I am editing output lines
-**When** I need the same dimensions for all outputs
-**Then** I can click "Apply to All" to set dimensions across all output lines
-
-**Given** I am adding outputs
-**When** I click "+ Add Output"
-**Then** a new blank output line is added
-**And** I can select/enter: Product Name, Quantity, Dimensions, m³
+**When** I need the same values for multiple outputs
+**Then** I can use "Copy Row" to duplicate with new package number
+**Or** I can use "Apply to All" for specific attributes
 
 **Given** I have added output lines
 **When** I view the outputs section
-**Then** I see all output lines with: Product, Quantity, Dimensions, m³
+**Then** I see all output lines with full attributes
 **And** I see a running total of output m³
 **And** I can remove any output line by clicking delete
 
@@ -688,19 +816,30 @@ NFR46: Loading states for operations > 1 second
 **Given** I have a complete production entry (inputs + outputs)
 **When** I click "Validate"
 **Then** I see a confirmation dialog showing:
-- Summary of inputs (total m³ to be consumed)
-- Summary of outputs (total m³ to be added)
+- Summary of input packages (count, total m³ to be consumed)
+- Summary of output packages (count, total m³ to be created)
 - Calculated outcome % and waste %
 - Warning if outcome % is unusual (<50% or >100%)
 
 **Given** I am on the validation confirmation
 **When** I confirm by clicking "Validate & Commit"
 **Then** the production entry status changes from "draft" to "validated"
-**And** input items are deducted from `inventory` table
-**And** output items are added to `inventory` table (as new products/quantities)
+**And** input packages have pieces/m³ deducted (or removed if fully consumed)
+**And** output packages are created as new inventory records
+**And** output package numbers are finalized (production-based format)
 **And** `validated_at` timestamp is set
 **And** I see success toast "Production validated successfully"
 **And** I am redirected to production history
+
+**Given** input package is fully consumed (all pieces used)
+**When** production is validated
+**Then** the input package record is marked as consumed (quantity = 0 or flagged)
+**And** it remains in history but not in available inventory
+
+**Given** input package is partially consumed
+**When** production is validated
+**Then** the package's pieces and m³ are reduced by consumed amount
+**And** remaining inventory is still available for future production
 
 **Given** I try to validate without any inputs
 **When** I click "Validate"

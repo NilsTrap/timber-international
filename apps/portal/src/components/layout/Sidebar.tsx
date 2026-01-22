@@ -1,0 +1,151 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { ChevronLeft, ChevronRight, User, LogOut } from "lucide-react";
+import { Button } from "@timber/ui";
+import { cn } from "@/lib/utils";
+import { SidebarLink, type IconName } from "./SidebarLink";
+import { logoutUser } from "@/features/auth/actions";
+
+/**
+ * Navigation Item Type
+ */
+export interface NavItem {
+  href: string;
+  label: string;
+  iconName: IconName;
+}
+
+interface SidebarProps {
+  navItems: NavItem[];
+}
+
+const SIDEBAR_COLLAPSED_KEY = "sidebar-collapsed";
+
+/**
+ * Collapsible Sidebar Navigation
+ *
+ * Left sidebar that can be collapsed to show only icons.
+ * Collapse state is persisted to localStorage.
+ */
+export function Sidebar({ navItems }: SidebarProps) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Load collapsed state from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem(SIDEBAR_COLLAPSED_KEY);
+    if (stored !== null) {
+      setIsCollapsed(stored === "true");
+    }
+    setIsMounted(true);
+  }, []);
+
+  // Save collapsed state to localStorage
+  const toggleCollapsed = () => {
+    const newValue = !isCollapsed;
+    setIsCollapsed(newValue);
+    localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(newValue));
+  };
+
+  // Prevent hydration mismatch
+  if (!isMounted) {
+    return (
+      <aside className="flex h-screen w-64 flex-col border-r bg-card">
+        <div className="flex h-14 items-center border-b px-4">
+          <span className="font-semibold text-lg">Timber World</span>
+        </div>
+      </aside>
+    );
+  }
+
+  return (
+    <aside
+      className={cn(
+        "flex h-screen flex-col border-r bg-card transition-all duration-300",
+        isCollapsed ? "w-16" : "w-64"
+      )}
+    >
+      {/* Header */}
+      <div className="flex h-14 items-center border-b px-4">
+        <Link
+          href="/dashboard"
+          className="flex items-center overflow-hidden"
+          aria-label="Go to dashboard"
+        >
+          {isCollapsed ? (
+            <span className="text-xl font-bold text-primary">TW</span>
+          ) : (
+            <>
+              <span className="font-semibold text-lg whitespace-nowrap">Timber World</span>
+              <span className="ml-2 text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded whitespace-nowrap">
+                Portal
+              </span>
+            </>
+          )}
+        </Link>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 overflow-y-auto p-2" aria-label="Main navigation">
+        <ul className="space-y-1">
+          {navItems.map((item) => (
+            <li key={item.href}>
+              <SidebarLink
+                href={item.href}
+                label={item.label}
+                iconName={item.iconName}
+                isCollapsed={isCollapsed}
+              />
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      {/* Footer - Profile & Logout */}
+      <div className="border-t p-2 space-y-1">
+        <SidebarLink
+          href="/profile"
+          label="Profile"
+          iconName="User"
+          isCollapsed={isCollapsed}
+        />
+        <form action={logoutUser}>
+          <button
+            type="submit"
+            className={cn(
+              "flex w-full items-center rounded-md px-3 py-2 text-sm transition-colors",
+              "text-foreground/60 hover:bg-accent hover:text-foreground",
+              isCollapsed ? "justify-center" : "gap-3"
+            )}
+            aria-label="Logout"
+          >
+            <LogOut className="h-5 w-5 shrink-0" />
+            {!isCollapsed && <span>Logout</span>}
+          </button>
+        </form>
+      </div>
+
+      {/* Collapse Toggle */}
+      <div className="border-t p-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={toggleCollapsed}
+          className={cn("w-full", isCollapsed ? "px-0" : "")}
+          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {isCollapsed ? (
+            <ChevronRight className="h-4 w-4" />
+          ) : (
+            <>
+              <ChevronLeft className="h-4 w-4 mr-2" />
+              <span>Collapse</span>
+            </>
+          )}
+        </Button>
+      </div>
+    </aside>
+  );
+}

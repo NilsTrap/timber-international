@@ -5,11 +5,15 @@ inputDocuments:
   - '_bmad-output/planning-artifacts/product-brief-Timber-World-2026-01-20.md'
   - '_bmad-output/analysis/platform-deep-analysis-2026-01-20.md'
   - '_bmad-output/analysis/platform-vision-capture-2026-01-20.md'
+relatedDocuments:
+  - '_bmad-output/planning-artifacts/inventory-data-model-v2.md'
 workflowType: 'prd'
 workflowComplete: true
 lastStep: 11
 date: 2026-01-21
 completedDate: 2026-01-21
+lastUpdated: 2026-01-22
+updateNote: 'Inventory model refined - see inventory-data-model-v2.md for flat shipment/package model'
 ---
 
 # Product Requirements Document - Timber World Platform
