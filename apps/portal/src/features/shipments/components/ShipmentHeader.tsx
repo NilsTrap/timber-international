@@ -130,6 +130,14 @@ export function ShipmentHeader({
             placeholder="0,00"
             value={transportCostEur.replace(".", ",")}
             onChange={(e) => onTransportCostChange(e.target.value.replace(",", "."))}
+            onBlur={() => {
+              if (transportCostEur) {
+                const num = parseFloat(transportCostEur);
+                if (!isNaN(num)) {
+                  onTransportCostChange(num.toFixed(2));
+                }
+              }
+            }}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();
