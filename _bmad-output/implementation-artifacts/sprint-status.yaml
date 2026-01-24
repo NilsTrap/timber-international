@@ -58,19 +58,17 @@ development_status:
   epic-2-retrospective: optional
 
   # Epic 3: Producer Inventory View
-  epic-3: in-progress
+  epic-3: done
   3-1-producer-inventory-table: done
-  3-2-inventory-filtering-search: backlog
   epic-3-retrospective: optional
 
   # Epic 4: Production Entry & Tracking
-  epic-4: backlog
-  4-1-create-production-entry-with-process-selection: backlog
+  epic-4: in-progress
+  4-1-create-production-entry-with-process-selection: done
   4-2-add-production-inputs-from-inventory: backlog
   4-3-add-production-outputs: backlog
   4-4-live-production-calculations: backlog
   4-5-validate-production-update-inventory: backlog
-  4-6-custom-process-management: backlog
   epic-4-retrospective: optional
 
   # Epic 5: Production Insights & History

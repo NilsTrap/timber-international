@@ -15,7 +15,8 @@ export type ReferenceTableName =
   | "ref_types"
   | "ref_processing"
   | "ref_fsc"
-  | "ref_quality";
+  | "ref_quality"
+  | "ref_processes";
 
 /**
  * Array of valid table names for runtime validation
@@ -29,6 +30,7 @@ export const VALID_REFERENCE_TABLES: ReferenceTableName[] = [
   "ref_processing",
   "ref_fsc",
   "ref_quality",
+  "ref_processes",
 ];
 
 /**
@@ -42,6 +44,7 @@ export const REFERENCE_TABLE_MAP: Record<string, ReferenceTableName> = {
   processing: "ref_processing",
   fsc: "ref_fsc",
   quality: "ref_quality",
+  processes: "ref_processes",
 };
 
 /**
@@ -56,6 +59,7 @@ export const REFERENCE_TABLE_DISPLAY_NAMES: Record<ReferenceTableName, string> =
     ref_processing: "Processing",
     ref_fsc: "FSC",
     ref_quality: "Quality",
+    ref_processes: "Processes",
   };
 
 /**

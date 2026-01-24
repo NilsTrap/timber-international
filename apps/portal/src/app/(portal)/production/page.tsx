@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { Factory } from "lucide-react";
 import { getSession } from "@/lib/auth";
+import { getProcesses, getDraftProductions } from "@/features/production/actions";
+import { NewProductionForm } from "@/features/production/components/NewProductionForm";
+import { DraftProductionList } from "@/features/production/components/DraftProductionList";
 
 export const metadata: Metadata = {
   title: "Production",
@@ -11,7 +13,7 @@ export const metadata: Metadata = {
  * Production Page
  *
  * Producer page for creating and managing production entries.
- * Accessible to both admin and producer roles.
+ * Shows a form to start new production and a list of draft entries.
  *
  * TODO [i18n]: Replace hardcoded text with useTranslations()
  */
@@ -22,6 +24,14 @@ export default async function ProductionPage() {
     redirect("/login");
   }
 
+  const [processesResult, draftsResult] = await Promise.all([
+    getProcesses(),
+    getDraftProductions(),
+  ]);
+
+  const processes = processesResult.success ? processesResult.data : [];
+  const drafts = draftsResult.success ? draftsResult.data : [];
+
   return (
     <div className="space-y-6">
       <div>
@@ -31,19 +41,12 @@ export default async function ProductionPage() {
         </p>
       </div>
 
-      <div className="rounded-lg border bg-card p-12 shadow-sm">
-        <div className="flex flex-col items-center justify-center text-center">
-          <Factory className="h-12 w-12 text-muted-foreground mb-4" />
-          <h2 className="text-lg font-semibold mb-2">Production Entry</h2>
-          <p className="text-muted-foreground max-w-md">
-            Create production entries to track material transformations (input → process → output).
-            This feature will be implemented in Stories 4.1 - 4.5.
-          </p>
-          <p className="mt-4 text-sm text-muted-foreground">
-            Coming in Epic 4: Production Entry & Tracking
-          </p>
-        </div>
+      <div className="rounded-lg border bg-card p-6 shadow-sm">
+        <h2 className="text-lg font-semibold mb-4">New Production</h2>
+        <NewProductionForm processes={processes} />
       </div>
+
+      <DraftProductionList drafts={drafts} />
     </div>
   );
 }

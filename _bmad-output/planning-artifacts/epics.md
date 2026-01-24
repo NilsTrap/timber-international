@@ -8,7 +8,7 @@ inputDocuments:
 scope: 'Producer MVP'
 targetUsers: ['Admin (Timber World)', 'Producer (Factory Manager)']
 epicCount: 5
-storyCount: 21
+storyCount: 19
 workflowComplete: true
 completedDate: '2026-01-22'
 status: 'ready-for-implementation'
@@ -598,42 +598,6 @@ NFR46: Loading states for operations > 1 second
 
 ---
 
-### Story 3.2: Inventory Filtering & Search
-
-**As a** Producer,
-**I want** to filter and search inventory by various attributes,
-**So that** I can quickly find specific materials for production.
-
-**Acceptance Criteria:**
-
-**Given** I am viewing the inventory table
-**When** I type in the search box
-**Then** the table filters to show packages matching the search term
-**And** search matches against: Package No, Product Name, Species
-
-**Given** I am viewing the inventory table
-**When** I use the filter dropdowns
-**Then** I can filter by: Product Name, Species, Humidity, Type, Processing
-**And** the table updates to show only matching packages
-
-**Given** I am viewing the inventory table
-**When** I click on a column header
-**Then** the table sorts by that column
-**And** clicking again toggles between ascending and descending
-
-**Given** I have filtered/sorted the inventory
-**When** I click "Clear Filters"
-**Then** the table resets to show all packages in default order
-
-**Given** I filter inventory and no results match
-**When** I view the table
-**Then** I see a message "No packages match your filters"
-**And** I see a "Clear Filters" button
-
-**Given** I want to filter by shipment
-**When** I select a shipment from the Shipment filter dropdown
-**Then** only packages from that shipment are shown
-
 ---
 
 ## Epic 4: Production Entry & Tracking
@@ -656,22 +620,26 @@ NFR46: Loading states for operations > 1 second
 
 **Given** I am logged in as Producer
 **When** I navigate to Production and click "New Production"
-**Then** I see a production form with a process selector
+**Then** I see a production form with a process dropdown
 
 **Given** I am creating a new production entry
-**When** I view the process selector
-**Then** I see standard processes: Multi-saw, Planing, Opti-cut, Gluing, Sanding, Finger Jointing
-**And** I see any custom processes I've added
-**And** I see an option to "Add Custom Process"
+**When** I view the process dropdown
+**Then** I see all active processes managed by Admin (via Reference Data)
+**And** processes are ordered by sort_order
 
-**Given** I select a process
-**When** I confirm selection
+**Given** I am logged in as Admin
+**When** I navigate to Admin > Reference Data
+**Then** I see a "Processes" tab alongside existing categories
+**And** I can add, edit, reorder, and deactivate processes (same CRUD as other reference data)
+
+**Given** I select a process from the dropdown
+**When** I click "Start Production"
 **Then** a new `production_entries` record is created with status "draft"
 **And** the production date defaults to today
-**And** I proceed to the input selection step
+**And** I am redirected to the production entry page
 
 **Given** I have a draft production entry
-**When** I navigate away and return to Production
+**When** I navigate to Production
 **Then** I can see and continue my draft entry
 **And** I can start a new entry if preferred
 
@@ -849,33 +817,6 @@ NFR46: Loading states for operations > 1 second
 **Then** the validation dialog opens
 
 ---
-
-### Story 4.6: Custom Process Management
-
-**As a** Producer,
-**I want** to add custom production processes,
-**So that** I can track processes specific to my facility.
-
-**Acceptance Criteria:**
-
-**Given** I am selecting a process for production
-**When** I click "Add Custom Process"
-**Then** I see a dialog to enter a new process name
-
-**Given** I am adding a custom process
-**When** I enter a name and click Save
-**Then** a new process is created in the `processes` table with `is_standard = false`
-**And** the new process appears in my process selector
-**And** the new process is automatically selected
-
-**Given** custom processes exist
-**When** I view the process selector
-**Then** standard processes appear first
-**And** custom processes appear below with a "Custom" label
-
-**Given** I try to create a process with a name that already exists
-**When** I click Save
-**Then** I see an error "Process name already exists"
 
 ---
 
