@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Package } from "lucide-react";
 import {
   getProductionEntry,
   getAvailablePackages,
   getProductionInputs,
+  getReferenceDropdownsForProducer,
+  getProductionOutputs,
 } from "@/features/production/actions";
 import { ProductionInputsSection } from "@/features/production/components/ProductionInputsSection";
+import { ProductionOutputsSection } from "@/features/production/components/ProductionOutputsSection";
 import type { PackageListItem } from "@/features/shipments/types";
-import type { ProductionInput } from "@/features/production/types";
+import type { ProductionInput, ProductionOutput, ReferenceDropdowns } from "@/features/production/types";
 
 export const metadata: Metadata = {
   title: "Production Entry",
@@ -37,21 +39,30 @@ export default async function ProductionEntryPage({
     notFound();
   }
 
-  const { processName, productionDate: rawDate, status } = result.data;
+  const { processName, processCode, productionDate: rawDate, status } = result.data;
   const productionDate = new Date(rawDate + "T00:00:00").toLocaleDateString();
   const isDraft = status === "draft";
 
-  // Fetch inputs data for draft entries
+  // Fetch inputs + outputs data for draft entries
   let initialPackages: PackageListItem[] = [];
   let initialInputs: ProductionInput[] = [];
+  let initialOutputs: ProductionOutput[] = [];
+  let dropdowns: ReferenceDropdowns = {
+    productNames: [], woodSpecies: [], humidity: [],
+    types: [], processing: [], fsc: [], quality: [],
+  };
 
   if (isDraft) {
-    const [pkgResult, inputResult] = await Promise.all([
+    const [pkgResult, inputResult, outputResult, dropdownResult] = await Promise.all([
       getAvailablePackages(id),
       getProductionInputs(id),
+      getProductionOutputs(id),
+      getReferenceDropdownsForProducer(),
     ]);
     if (pkgResult.success) initialPackages = pkgResult.data;
     if (inputResult.success) initialInputs = inputResult.data;
+    if (outputResult.success) initialOutputs = outputResult.data;
+    if (dropdownResult.success) dropdowns = dropdownResult.data;
   }
 
   return (
@@ -85,19 +96,16 @@ export default async function ProductionEntryPage({
         />
       )}
 
-      {/* Outputs Section — Story 4.3 */}
-      <div className="rounded-lg border bg-card p-8 shadow-sm">
-        <div className="flex flex-col items-center justify-center text-center">
-          <Package className="h-10 w-10 text-muted-foreground mb-3" />
-          <h2 className="text-base font-semibold mb-1">Outputs</h2>
-          <p className="text-sm text-muted-foreground">
-            Record the output packages from production.
-          </p>
-          <p className="mt-2 text-xs text-muted-foreground">
-            Coming in Story 4.3
-          </p>
-        </div>
-      </div>
+      {/* Outputs Section */}
+      {isDraft && (
+        <ProductionOutputsSection
+          productionEntryId={id}
+          initialOutputs={initialOutputs}
+          dropdowns={dropdowns}
+          inputs={initialInputs}
+          processCode={processCode}
+        />
+      )}
     </div>
   );
 }

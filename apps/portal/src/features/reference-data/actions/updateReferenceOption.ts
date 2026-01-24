@@ -20,7 +20,7 @@ import {
 export async function updateReferenceOption(
   tableName: ReferenceTableName,
   id: string,
-  input: { value: string }
+  input: { value: string; code?: string }
 ): Promise<ActionResult<ReferenceOption>> {
   // 1. Check authentication
   const session = await getSession();
@@ -60,6 +60,7 @@ export async function updateReferenceOption(
   }
 
   // 5. Validate input with Zod
+  const isProcesses = tableName === "ref_processes";
   const parsed = referenceOptionSchema.safeParse(input);
   if (!parsed.success) {
     return {
@@ -69,7 +70,17 @@ export async function updateReferenceOption(
     };
   }
 
-  const { value } = parsed.data;
+  const { value, code: processCode } = parsed.data;
+
+  // For processes, code is required
+  if (isProcesses && !processCode) {
+    return {
+      success: false,
+      error: "Code is required for processes",
+      code: "VALIDATION_ERROR",
+    };
+  }
+
   const supabase = await createClient();
 
   // 6. Check for duplicate value (excluding current record)
@@ -90,16 +101,44 @@ export async function updateReferenceOption(
     };
   }
 
-  // 6. Update option
+  // 6. Check for duplicate code (processes only, excluding current record)
+  if (isProcesses && processCode) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: existingCode } = await (supabase as any)
+      .from(tableName)
+      .select("id")
+      .eq("code", processCode)
+      .neq("id", id)
+      .single();
+
+    if (existingCode) {
+      return {
+        success: false,
+        error: "This code already exists",
+        code: "DUPLICATE_CODE",
+      };
+    }
+  }
+
+  // 7. Update option
+  const updatePayload: Record<string, unknown> = {
+    value,
+    updated_at: new Date().toISOString(),
+  };
+  if (isProcesses && processCode) {
+    updatePayload.code = processCode;
+  }
+
+  const selectColumns = isProcesses
+    ? "id, value, code, sort_order, is_active, created_at, updated_at"
+    : "id, value, sort_order, is_active, created_at, updated_at";
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase as any)
     .from(tableName)
-    .update({
-      value,
-      updated_at: new Date().toISOString(),
-    })
+    .update(updatePayload)
     .eq("id", id)
-    .select("id, value, sort_order, is_active, created_at, updated_at")
+    .select(selectColumns)
     .single();
 
   if (error) {
@@ -119,10 +158,11 @@ export async function updateReferenceOption(
     };
   }
 
-  // 7. Transform and return
+  // 8. Transform and return
   const option: ReferenceOption = {
     id: data.id as string,
     value: data.value as string,
+    ...(isProcesses && data.code ? { code: data.code as string } : {}),
     sortOrder: data.sort_order as number,
     isActive: data.is_active as boolean,
     createdAt: data.created_at as string,

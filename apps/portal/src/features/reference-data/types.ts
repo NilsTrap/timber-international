@@ -68,6 +68,7 @@ export const REFERENCE_TABLE_DISPLAY_NAMES: Record<ReferenceTableName, string> =
 export interface ReferenceOption {
   id: string;
   value: string;
+  code?: string;
   sortOrder: number;
   isActive: boolean;
   createdAt: string;

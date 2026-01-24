@@ -53,6 +53,7 @@ type SortDirection = "asc" | "desc";
 export function ReferenceOptionsTable({
   tableName,
 }: ReferenceOptionsTableProps) {
+  const isProcesses = tableName === "ref_processes";
   const [options, setOptions] = useState<ReferenceOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isReordering, setIsReordering] = useState(false);
@@ -301,6 +302,9 @@ export function ReferenceOptionsTable({
                     <SortIndicator column="value" />
                   </button>
                 </TableHead>
+                {isProcesses && (
+                  <TableHead className="w-24">Code</TableHead>
+                )}
                 <TableHead className="w-28">
                   <button
                     onClick={() => handleSort("isActive")}
@@ -324,6 +328,9 @@ export function ReferenceOptionsTable({
                     {option.sortOrder}
                   </TableCell>
                   <TableCell className="font-medium">{option.value}</TableCell>
+                  {isProcesses && (
+                    <TableCell className="font-mono text-sm">{option.code || "—"}</TableCell>
+                  )}
                   <TableCell>
                     <Badge variant={option.isActive ? "success" : "secondary"}>
                       {option.isActive ? "Active" : "Inactive"}

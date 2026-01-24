@@ -104,10 +104,14 @@ export interface DataEntryTableProps<TRow> {
   title?: string;
   /** Add row button label (default: "Add Row") */
   addRowLabel?: string;
+  /** Extra content rendered inside the add row button after the label (e.g., keyboard hint) */
+  addRowSuffix?: React.ReactNode;
   /** LocalStorage key for persisting collapsed columns state */
   collapseStorageKey?: string;
   /** ID prefix for input elements (default: "det") */
   idPrefix?: string;
+  /** When true, allows deleting all rows (default: false, keeps at least 1 row) */
+  allowEmpty?: boolean;
 
   // ─── Read-Only Mode ───────────────────────────────────────────────────
   /** When true, hides add/copy/delete actions and renders all cells as text.
@@ -137,8 +141,10 @@ function DataEntryTable<TRow>({
   onCellChange,
   title = "Data",
   addRowLabel = "Add Row",
+  addRowSuffix,
   collapseStorageKey = "det-collapsed-columns",
   idPrefix = "det",
+  allowEmpty = false,
   readOnly = false,
   onDisplayRowsChange,
 }: DataEntryTableProps<TRow>) {
@@ -357,12 +363,12 @@ function DataEntryTable<TRow>({
   const handleRemoveRow = useCallback(
     (originalIndex: number) => {
       if (!onRowsChange) return;
-      if (rows.length <= 1) return;
+      if (!allowEmpty && rows.length <= 1) return;
       const newRows = rows.filter((_, i) => i !== originalIndex);
       const result = renumberRows ? renumberRows(newRows) : newRows;
       onRowsChange(result);
     },
-    [rows, onRowsChange, renumberRows]
+    [rows, onRowsChange, renumberRows, allowEmpty]
   );
 
   // ─── Keyboard Navigation ────────────────────────────────────────────────
@@ -552,10 +558,19 @@ function DataEntryTable<TRow>({
       {!readOnly && (
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">{title}</h2>
-          <Button onClick={handleAddRow} variant="outline" size="sm">
-            <Plus className="h-4 w-4" />
-            {addRowLabel}
-          </Button>
+          <div className="flex items-center gap-2">
+            {hasActiveFilters && (
+              <Button variant="ghost" size="sm" onClick={handleClearAll} className="text-xs h-7">
+                <X className="h-3 w-3 mr-1" />
+                Clear Filters
+              </Button>
+            )}
+            <Button onClick={handleAddRow} variant="outline" size="sm">
+              <Plus className="h-4 w-4" />
+              {addRowLabel}
+              {addRowSuffix}
+            </Button>
+          </div>
         </div>
       )}
 
@@ -568,7 +583,7 @@ function DataEntryTable<TRow>({
         </div>
       )}
 
-      <div className="rounded-lg border overflow-x-auto">
+      <div className="rounded-lg border overflow-x-auto w-fit max-w-full">
         <Table className="w-auto">
           <TableHeader>
             <TableRow>
@@ -722,7 +737,7 @@ function DataEntryTable<TRow>({
                         variant="ghost"
                         size="icon-sm"
                         onClick={() => handleRemoveRow(originalIndex)}
-                        disabled={rows.length <= 1}
+                        disabled={!allowEmpty && rows.length <= 1}
                         aria-label="Remove row"
                         title="Remove row"
                       >

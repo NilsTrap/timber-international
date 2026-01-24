@@ -11,6 +11,12 @@ export const referenceOptionSchema = z.object({
     .min(1, "Value is required")
     .max(100, "Value must be 100 characters or less")
     .trim(),
+  code: z
+    .string()
+    .min(1, "Code is required")
+    .max(10, "Code must be 10 characters or less")
+    .regex(/^[A-Z0-9]+$/, "Code must be uppercase letters/numbers only")
+    .optional(),
 });
 
 export type ReferenceOptionInput = z.infer<typeof referenceOptionSchema>;

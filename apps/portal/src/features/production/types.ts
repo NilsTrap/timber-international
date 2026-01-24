@@ -54,6 +54,59 @@ export interface ProductionInput {
   createdAt: string;
 }
 
+export interface ProductionOutput {
+  id: string;
+  productionEntryId: string;
+  packageNumber: string;
+  productNameId: string | null;
+  woodSpeciesId: string | null;
+  humidityId: string | null;
+  typeId: string | null;
+  processingId: string | null;
+  fscId: string | null;
+  qualityId: string | null;
+  thickness: string | null;
+  width: string | null;
+  length: string | null;
+  pieces: string | null;
+  volumeM3: number;
+  createdAt: string;
+}
+
+export interface OutputRow {
+  clientId: string;
+  dbId: string | null;
+  packageNumber: string;
+  productNameId: string;
+  woodSpeciesId: string;
+  humidityId: string;
+  typeId: string;
+  processingId: string;
+  fscId: string;
+  qualityId: string;
+  thickness: string;
+  width: string;
+  length: string;
+  pieces: string;
+  volumeM3: string;
+  volumeIsCalculated: boolean;
+}
+
+export interface ReferenceOption {
+  id: string;
+  value: string;
+}
+
+export interface ReferenceDropdowns {
+  productNames: ReferenceOption[];
+  woodSpecies: ReferenceOption[];
+  humidity: ReferenceOption[];
+  types: ReferenceOption[];
+  processing: ReferenceOption[];
+  fsc: ReferenceOption[];
+  quality: ReferenceOption[];
+}
+
 export type ActionResult<T> =
   | { success: true; data: T }
   | { success: false; error: string; code?: string };

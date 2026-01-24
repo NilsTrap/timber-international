@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useCallback, useTransition, useEffect } from "react";
-import { Plus } from "lucide-react";
+import { useState, useCallback, useTransition, useEffect, useRef } from "react";
+import { Plus, X } from "lucide-react";
 import { Button } from "@timber/ui";
 import type { PackageListItem } from "@/features/shipments/types";
 import type { ProductionInput } from "../types";
 import { getAvailablePackages, getProductionInputs } from "../actions";
 import { PackageSelector } from "./PackageSelector";
-import { ProductionInputsTable } from "./ProductionInputsTable";
+import { ProductionInputsTable, type ProductionInputsTableHandle } from "./ProductionInputsTable";
 
 interface ProductionInputsSectionProps {
   productionEntryId: string;
@@ -30,6 +30,8 @@ export function ProductionInputsSection({
   const [packages, setPackages] = useState<PackageListItem[]>(initialPackages);
   const [inputs, setInputs] = useState<ProductionInput[]>(initialInputs);
   const [, startTransition] = useTransition();
+  const [inputsFilterActive, setInputsFilterActive] = useState(false);
+  const tableRef = useRef<ProductionInputsTableHandle>(null);
 
   const refreshData = useCallback(() => {
     startTransition(async () => {
@@ -67,11 +69,19 @@ export function ProductionInputsSection({
             </p>
           )}
         </div>
-        <Button variant="outline" size="sm" onClick={() => setSelectorOpen(true)}>
-          <Plus className="h-4 w-4 mr-1" />
-          Add Input
-          <kbd className="ml-2 text-[10px] text-muted-foreground bg-muted px-1 py-0.5 rounded border">Ctrl+I</kbd>
-        </Button>
+        <div className="flex items-center gap-2">
+          {inputsFilterActive && (
+            <Button variant="ghost" size="sm" onClick={() => tableRef.current?.clearFilters()} className="text-xs h-7">
+              <X className="h-3 w-3 mr-1" />
+              Clear Filters
+            </Button>
+          )}
+          <Button variant="outline" size="sm" onClick={() => setSelectorOpen(true)}>
+            <Plus className="h-4 w-4 mr-1" />
+            Add Input
+            <kbd className="ml-2 text-[10px] text-muted-foreground bg-muted px-1 py-0.5 rounded border">Ctrl+I</kbd>
+          </Button>
+        </div>
       </div>
 
       {inputs.length === 0 ? (
@@ -82,8 +92,10 @@ export function ProductionInputsSection({
         </div>
       ) : (
         <ProductionInputsTable
+          ref={tableRef}
           inputs={inputs}
           onInputsChanged={refreshData}
+          onFilterActiveChange={setInputsFilterActive}
         />
       )}
 

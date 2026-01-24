@@ -53,11 +53,16 @@ export async function getReferenceOptions(
   const supabase = await createClient();
 
   // 4. Fetch options sorted by sort_order
+  const isProcesses = tableName === "ref_processes";
+  const selectColumns = isProcesses
+    ? "id, value, code, sort_order, is_active, created_at, updated_at"
+    : "id, value, sort_order, is_active, created_at, updated_at";
+
   // Note: Using type assertion because reference tables aren't in generated Supabase types yet
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let query = (supabase as any)
     .from(tableName)
-    .select("id, value, sort_order, is_active, created_at, updated_at");
+    .select(selectColumns);
 
   // Filter to active-only unless includeInactive is true (for admin management view)
   if (!options?.includeInactive) {
@@ -80,6 +85,7 @@ export async function getReferenceOptions(
   const referenceOptions: ReferenceOption[] = (data || []).map((row: any) => ({
     id: row.id as string,
     value: row.value as string,
+    ...(isProcesses && row.code ? { code: row.code as string } : {}),
     sortOrder: row.sort_order as number,
     isActive: row.is_active as boolean,
     createdAt: row.created_at as string,

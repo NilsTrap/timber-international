@@ -14,6 +14,7 @@ export interface ProductionEntryDetail {
   notes: string | null;
   createdAt: string;
   processName: string;
+  processCode: string;
 }
 
 /**
@@ -35,7 +36,7 @@ export async function getProductionEntry(
 
   const { data, error } = await (supabase as any)
     .from("portal_production_entries")
-    .select("id, production_date, status, notes, created_at, ref_processes(value)")
+    .select("id, production_date, status, notes, created_at, ref_processes(value, code)")
     .eq("id", id)
     .single();
 
@@ -52,6 +53,7 @@ export async function getProductionEntry(
       notes: data.notes,
       createdAt: data.created_at,
       processName: data.ref_processes?.value ?? "Unknown",
+      processCode: data.ref_processes?.code ?? "OUT",
     },
   };
 }

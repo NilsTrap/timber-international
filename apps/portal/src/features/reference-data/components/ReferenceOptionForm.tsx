@@ -40,6 +40,7 @@ export function ReferenceOptionForm({
 }: ReferenceOptionFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isEditing = !!option;
+  const isProcesses = tableName === "ref_processes";
 
   const {
     register,
@@ -50,15 +51,19 @@ export function ReferenceOptionForm({
     resolver: zodResolver(referenceOptionSchema),
     defaultValues: {
       value: option?.value ?? "",
+      ...(isProcesses ? { code: option?.code ?? "" } : {}),
     },
   });
 
   // Reset form when option changes or dialog opens
   useEffect(() => {
     if (open) {
-      reset({ value: option?.value ?? "" });
+      reset({
+        value: option?.value ?? "",
+        ...(isProcesses ? { code: option?.code ?? "" } : {}),
+      });
     }
-  }, [open, option, reset]);
+  }, [open, option, reset, isProcesses]);
 
   const onSubmit = async (data: ReferenceOptionInput) => {
     setIsSubmitting(true);
@@ -110,6 +115,28 @@ export function ReferenceOptionForm({
               <p className="text-sm text-destructive">{errors.value.message}</p>
             )}
           </div>
+
+          {isProcesses && (
+            <div className="space-y-2">
+              <Label htmlFor="code">Code</Label>
+              <Input
+                id="code"
+                placeholder="e.g. PL, MS, OC"
+                className="uppercase"
+                maxLength={10}
+                {...register("code", {
+                  setValueAs: (v: string) => v?.toUpperCase(),
+                })}
+                aria-invalid={!!errors.code}
+              />
+              <p className="text-xs text-muted-foreground">
+                Short code used for output package numbering (e.g. PL-001)
+              </p>
+              {errors.code && (
+                <p className="text-sm text-destructive">{errors.code.message}</p>
+              )}
+            </div>
+          )}
 
           <DialogFooter>
             <Button

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useCallback, useTransition, useEffect } from "react";
+import { useMemo, useState, useCallback, useTransition, useEffect, forwardRef, useImperativeHandle } from "react";
 import { Trash2 } from "lucide-react";
 import {
   Table,
@@ -19,9 +19,14 @@ import { toast } from "sonner";
 import type { ProductionInput } from "../types";
 import { updateProductionInput, removeProductionInput } from "../actions";
 
+export interface ProductionInputsTableHandle {
+  clearFilters: () => void;
+}
+
 interface ProductionInputsTableProps {
   inputs: ProductionInput[];
   onInputsChanged: () => void;
+  onFilterActiveChange?: (active: boolean) => void;
 }
 
 interface ColConfig {
@@ -51,10 +56,11 @@ function calculateVolume(
   return (t * w * l * pieces) / 1_000_000_000;
 }
 
-export function ProductionInputsTable({
+export const ProductionInputsTable = forwardRef<ProductionInputsTableHandle, ProductionInputsTableProps>(function ProductionInputsTable({
   inputs,
   onInputsChanged,
-}: ProductionInputsTableProps) {
+  onFilterActiveChange,
+}, ref) {
   const [isPending, startTransition] = useTransition();
   const [editingCell, setEditingCell] = useState<{ id: string; field: "pieces" | "volume" } | null>(null);
   const [editValue, setEditValue] = useState("");
@@ -278,18 +284,17 @@ export function ProductionInputsTable({
     setSortState(null);
   }, []);
 
-  return (
-    <div className="space-y-1">
-      {hasActiveFilters && (
-        <div className="flex justify-end">
-          <Button variant="ghost" size="sm" onClick={handleClearAll} className="text-xs h-7">
-            <span className="mr-1">×</span>
-            Clear Filters
-          </Button>
-        </div>
-      )}
+  useImperativeHandle(ref, () => ({
+    clearFilters: handleClearAll,
+  }), [handleClearAll]);
 
-      <div className="rounded-lg border overflow-x-auto">
+  useEffect(() => {
+    onFilterActiveChange?.(hasActiveFilters);
+  }, [hasActiveFilters, onFilterActiveChange]);
+
+  return (
+    <div>
+      <div className="rounded-lg border overflow-x-auto w-fit max-w-full">
         <Table className="w-auto">
           <TableHeader>
             <TableRow>
@@ -494,4 +499,4 @@ export function ProductionInputsTable({
       </div>
     </div>
   );
-}
+});
