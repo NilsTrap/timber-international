@@ -158,7 +158,7 @@ export function ShipmentsTab({ shipments }: ShipmentsTabProps) {
               <TableCell className="text-right">
                 {shipment.transportCostEur != null
                   ? shipment.transportCostEur.toFixed(2).replace(".", ",")
-                  : "—"}
+                  : "-"}
               </TableCell>
             </TableRow>
           ))}

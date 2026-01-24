@@ -576,7 +576,7 @@ export function PackageSelector({
 
                           return (
                             <TableCell key={col.key} className="px-1 text-xs whitespace-nowrap">
-                              {value || "—"}
+                              {value || "-"}
                             </TableCell>
                           );
                         })}

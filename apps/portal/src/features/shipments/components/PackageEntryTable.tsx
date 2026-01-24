@@ -135,7 +135,7 @@ export function PackageEntryTable({
         label: "Shipment",
         type: "readonly",
         getValue: () => shipmentCode || "",
-        getDisplayValue: () => shipmentCode || "—",
+        getDisplayValue: () => shipmentCode || "-",
       },
       // Package number (readonly)
       {

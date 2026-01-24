@@ -218,8 +218,7 @@ NFR46: Loading states for operations > 1 second
 **FRs covered:** FR45, FR46, FR51, FR52
 
 **Additional Requirements:**
-- Production page gets two tabs: Active (drafts) + History (validated entries)
-- Remove separate "History" sidebar item — history lives inside Production
+- Production page has two tabs: Active (drafts) + History (validated entries)
 - Validated entries are permanent — no editing or deleting
 - Corrections are new production entries (same flow) flagged as "correction" and linked to the original
 - Dashboard metrics (outcome %, waste %)
@@ -330,7 +329,7 @@ NFR46: Loading states for operations > 1 second
 
 **Given** I am logged in as Producer
 **When** I view the dashboard
-**Then** I see navigation links: Dashboard, Inventory (view), Production, History
+**Then** I see navigation links: Dashboard, Inventory (view), Production
 **And** the dashboard shows a "Production Dashboard" header
 
 **Given** I am a Producer
@@ -880,10 +879,6 @@ NFR46: Loading states for operations > 1 second
 **Given** no validated entries exist
 **When** I view the "History" tab
 **Then** I see an empty state "No production history yet"
-
-**Given** the sidebar currently shows a "History" item
-**When** this story is implemented
-**Then** the "History" sidebar item is removed (history lives inside the Production page)
 
 ---
 

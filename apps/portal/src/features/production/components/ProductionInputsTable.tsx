@@ -395,7 +395,7 @@ export const ProductionInputsTable = forwardRef<ProductionInputsTableHandle, Pro
 
                     return (
                       <TableCell key={col.key} className="px-1 text-xs whitespace-nowrap">
-                        {value || "—"}
+                        {value || "-"}
                       </TableCell>
                     );
                   })}
@@ -404,7 +404,7 @@ export const ProductionInputsTable = forwardRef<ProductionInputsTableHandle, Pro
                   <TableCell className="px-1">
                     {hasPieces ? (
                       readOnly ? (
-                        <span className="text-xs px-1">{row.piecesUsed != null ? row.piecesUsed : "—"}</span>
+                        <span className="text-xs px-1">{row.piecesUsed != null ? row.piecesUsed : "-"}</span>
                       ) : isEditingPieces ? (
                         <Input
                           className="h-7 text-xs px-1 w-[4.5rem]"
@@ -421,7 +421,7 @@ export const ProductionInputsTable = forwardRef<ProductionInputsTableHandle, Pro
                           className="text-xs px-1 py-0.5 w-[4.5rem] text-left rounded hover:bg-accent/50 cursor-text"
                           onClick={() => handleStartEdit(row.id, "pieces", row.piecesUsed != null ? String(row.piecesUsed) : "")}
                         >
-                          {row.piecesUsed != null ? row.piecesUsed : "—"}
+                          {row.piecesUsed != null ? row.piecesUsed : "-"}
                         </button>
                       )
                     ) : (
@@ -483,17 +483,17 @@ export const ProductionInputsTable = forwardRef<ProductionInputsTableHandle, Pro
                 {/* Shipment */}
                 <TableCell className="px-1" />
                 {/* Package count */}
-                <TableCell className="px-1 text-xs font-medium">{totals.count}</TableCell>
+                <TableCell className="px-1 font-mono text-xs font-semibold">{totals.count}</TableCell>
                 {/* 7 collapsible + 3 dimension columns */}
                 {columns.slice(2).map((col) => (
                   <TableCell key={col.key} className="px-1" />
                 ))}
                 {/* Pieces sum */}
-                <TableCell className="px-1 text-xs font-medium">
+                <TableCell className="px-1 font-mono text-xs font-semibold">
                   {totals.pieces > 0 ? totals.pieces : ""}
                 </TableCell>
                 {/* Volume sum */}
-                <TableCell className="px-1 text-xs font-medium">
+                <TableCell className="px-1 font-mono text-xs font-semibold">
                   {totals.volume > 0 ? totals.volume.toFixed(3).replace(".", ",") : ""}
                 </TableCell>
                 {/* Delete column */}

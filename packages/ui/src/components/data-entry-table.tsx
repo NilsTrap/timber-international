@@ -694,7 +694,7 @@ function DataEntryTable<TRow>({
                         key={col.key}
                         className="px-1 text-xs whitespace-nowrap"
                       >
-                        {displayValue || "—"}
+                        {displayValue || "-"}
                       </TableCell>
                     );
                   }

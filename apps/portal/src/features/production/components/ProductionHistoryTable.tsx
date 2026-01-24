@@ -1,10 +1,16 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import Link from "next/link";
-import { ChevronUp, ChevronDown, X } from "lucide-react";
+import { useState, useMemo, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { X, Calendar } from "lucide-react";
 import { Button } from "@timber/ui";
+import { ColumnHeaderMenu, type ColumnSortState } from "@timber/ui";
 import { formatDate } from "@/lib/utils";
+import type { ProductionHistoryItem } from "../types";
+
+interface ProductionHistoryTableProps {
+  entries: ProductionHistoryItem[];
+}
 
 /** Format number with comma decimal separator */
 function fmt3(n: number): string {
@@ -14,62 +20,100 @@ function fmt1(n: number): string {
   return n.toFixed(1).replace(".", ",");
 }
 
-/** Convert DD.MM.YYYY to YYYY-MM-DD for internal filtering */
+type ColumnKey =
+  | "productionDate"
+  | "processName"
+  | "totalInputM3"
+  | "totalOutputM3"
+  | "outcomePercentage"
+  | "wastePercentage";
+
+/**
+ * Production History Table
+ *
+ * Displays validated production entries with per-column sort/filter
+ * using ColumnHeaderMenu popovers.
+ */
+/** Convert DD.MM.YYYY to YYYY-MM-DD for comparison */
 function parseEuropeanDate(value: string): string {
   const match = value.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
   if (match) return `${match[3]}-${match[2]}-${match[1]}`;
   return "";
 }
 
-import type { ProductionHistoryItem } from "../types";
-
-interface ProductionHistoryTableProps {
-  entries: ProductionHistoryItem[];
-}
-
-type SortColumn = keyof Pick<
-  ProductionHistoryItem,
-  | "productionDate"
-  | "processName"
-  | "totalInputM3"
-  | "totalOutputM3"
-  | "outcomePercentage"
-  | "wastePercentage"
->;
-
-/**
- * Production History Table
- *
- * Displays validated production entries with sortable columns
- * and client-side filters for process type and date range.
- */
 export function ProductionHistoryTable({
   entries,
 }: ProductionHistoryTableProps) {
-  const [sortColumn, setSortColumn] = useState<SortColumn>("productionDate");
-  const [sortAsc, setSortAsc] = useState(false);
-  const [processFilter, setProcessFilter] = useState("");
+  const router = useRouter();
+  const [sortState, setSortState] = useState<ColumnSortState | null>(null);
+  const [filterState, setFilterState] = useState<Record<string, Set<string>>>({});
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const dateFromRef = useRef<HTMLInputElement>(null);
+  const dateToRef = useRef<HTMLInputElement>(null);
 
-  // Unique process names for filter dropdown
-  const processNames = useMemo(() => {
-    const names = new Set(entries.map((e) => e.processName));
-    return Array.from(names).sort();
+  /** Convert YYYY-MM-DD from native picker to DD.MM.YYYY */
+  const handleDatePick = (isoValue: string, setter: (v: string) => void) => {
+    if (!isoValue) return;
+    const [y, m, d] = isoValue.split("-");
+    setter(`${d}.${m}.${y}`);
+  };
+
+  // Compute display value for each column (used for filtering)
+  const getDisplayValue = (entry: ProductionHistoryItem, col: ColumnKey): string => {
+    switch (col) {
+      case "productionDate":
+        return formatDate(entry.productionDate);
+      case "processName":
+        return entry.processName;
+      case "totalInputM3":
+        return fmt3(entry.totalInputM3);
+      case "totalOutputM3":
+        return fmt3(entry.totalOutputM3);
+      case "outcomePercentage":
+        return fmt1(entry.outcomePercentage) + "%";
+      case "wastePercentage":
+        return fmt1(entry.wastePercentage) + "%";
+    }
+  };
+
+  // Unique values per column for filter checkboxes
+  const uniqueValues = useMemo(() => {
+    const cols: ColumnKey[] = [
+      "productionDate",
+      "processName",
+      "totalInputM3",
+      "totalOutputM3",
+      "outcomePercentage",
+      "wastePercentage",
+    ];
+    const result: Record<string, string[]> = {};
+    for (const col of cols) {
+      const values = new Set(entries.map((e) => getDisplayValue(e, col)));
+      result[col] = Array.from(values);
+    }
+    return result;
   }, [entries]);
 
-  const hasActiveFilters = processFilter !== "" || dateFrom !== "" || dateTo !== "";
+  const handleFilterChange = (columnKey: string, values: Set<string>) => {
+    setFilterState((prev) => ({ ...prev, [columnKey]: values }));
+  };
+
+  const hasActiveFilters =
+    Object.values(filterState).some((s) => s.size > 0) || sortState !== null || dateFrom !== "" || dateTo !== "";
+
+  const handleClearAll = () => {
+    setFilterState({});
+    setSortState(null);
+    setDateFrom("");
+    setDateTo("");
+  };
 
   // Filter and sort entries
   const filteredEntries = useMemo(() => {
     let result = [...entries];
 
-    // Process filter
-    if (processFilter) {
-      result = result.filter((e) => e.processName === processFilter);
-    }
-
-    // Date range filter (convert DD.MM.YYYY inputs to ISO for comparison)
+    // Date range filter
     const isoFrom = parseEuropeanDate(dateFrom);
     const isoTo = parseEuropeanDate(dateTo);
     if (isoFrom) {
@@ -79,35 +123,43 @@ export function ProductionHistoryTable({
       result = result.filter((e) => e.productionDate <= isoTo);
     }
 
-    // Sort
-    result.sort((a, b) => {
-      const aVal = a[sortColumn];
-      const bVal = b[sortColumn];
-      if (typeof aVal === "string" && typeof bVal === "string") {
-        return sortAsc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+    // Apply column filters
+    const cols: ColumnKey[] = [
+      "productionDate",
+      "processName",
+      "totalInputM3",
+      "totalOutputM3",
+      "outcomePercentage",
+      "wastePercentage",
+    ];
+    for (const col of cols) {
+      const filter = filterState[col];
+      if (filter && filter.size > 0) {
+        result = result.filter((e) => filter.has(getDisplayValue(e, col)));
       }
-      const aNum = Number(aVal);
-      const bNum = Number(bVal);
-      return sortAsc ? aNum - bNum : bNum - aNum;
-    });
+    }
+
+    // Sort
+    if (sortState) {
+      const col = sortState.column as ColumnKey;
+      const asc = sortState.direction === "asc";
+      result.sort((a, b) => {
+        const aVal = a[col];
+        const bVal = b[col];
+        if (typeof aVal === "string" && typeof bVal === "string") {
+          return asc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+        }
+        const aNum = Number(aVal);
+        const bNum = Number(bVal);
+        return asc ? aNum - bNum : bNum - aNum;
+      });
+    } else {
+      // Default sort: newest first
+      result.sort((a, b) => b.productionDate.localeCompare(a.productionDate));
+    }
 
     return result;
-  }, [entries, processFilter, dateFrom, dateTo, sortColumn, sortAsc]);
-
-  const handleSort = (column: SortColumn) => {
-    if (sortColumn === column) {
-      setSortAsc(!sortAsc);
-    } else {
-      setSortColumn(column);
-      setSortAsc(false);
-    }
-  };
-
-  const clearFilters = () => {
-    setProcessFilter("");
-    setDateFrom("");
-    setDateTo("");
-  };
+  }, [entries, filterState, sortState, dateFrom, dateTo]);
 
   // Empty state — no entries at all
   if (entries.length === 0) {
@@ -118,60 +170,78 @@ export function ProductionHistoryTable({
     );
   }
 
-  const SortIcon = ({ column }: { column: SortColumn }) => {
-    if (sortColumn !== column) return null;
-    return sortAsc ? (
-      <ChevronUp className="h-3 w-3 inline ml-1" />
-    ) : (
-      <ChevronDown className="h-3 w-3 inline ml-1" />
-    );
-  };
+  const columns: { key: ColumnKey; label: string; numeric: boolean; align: string }[] = [
+    { key: "productionDate", label: "Date", numeric: false, align: "text-left" },
+    { key: "processName", label: "Process", numeric: false, align: "text-left" },
+    { key: "totalInputM3", label: "Input m³", numeric: true, align: "text-right" },
+    { key: "totalOutputM3", label: "Output m³", numeric: true, align: "text-right" },
+    { key: "outcomePercentage", label: "Outcome %", numeric: true, align: "text-right" },
+    { key: "wastePercentage", label: "Waste %", numeric: true, align: "text-right" },
+  ];
 
   return (
-    <div className="space-y-4">
-      {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3">
-        <select
-          value={processFilter}
-          onChange={(e) => setProcessFilter(e.target.value)}
-          className="h-9 rounded-md border bg-background px-3 text-sm"
-          aria-label="Filter by process"
-        >
-          <option value="">All Processes</option>
-          {processNames.map((name) => (
-            <option key={name} value={name}>
-              {name}
-            </option>
-          ))}
-        </select>
-
+    <div className="space-y-2">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <input
-            type="text"
-            placeholder="DD.MM.YYYY"
-            value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-            className="h-9 w-[120px] rounded-md border bg-background px-3 text-sm"
-            aria-label="Date from"
-            maxLength={10}
-          />
-          <span className="text-sm text-muted-foreground">to</span>
-          <input
-            type="text"
-            placeholder="DD.MM.YYYY"
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-            className="h-9 w-[120px] rounded-md border bg-background px-3 text-sm"
-            aria-label="Date to"
-            maxLength={10}
-          />
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="DD.MM.YYYY"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="h-9 w-[140px] rounded-md border bg-background pl-3 pr-8 text-sm"
+              aria-label="Date from"
+              maxLength={10}
+            />
+            <button
+              type="button"
+              onClick={() => dateFromRef.current?.showPicker()}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label="Pick start date"
+            >
+              <Calendar className="h-4 w-4" />
+            </button>
+            <input
+              ref={dateFromRef}
+              type="date"
+              className="sr-only"
+              tabIndex={-1}
+              onChange={(e) => handleDatePick(e.target.value, setDateFrom)}
+            />
+          </div>
+          <span className="text-sm text-muted-foreground">—</span>
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="DD.MM.YYYY"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="h-9 w-[140px] rounded-md border bg-background pl-3 pr-8 text-sm"
+              aria-label="Date to"
+              maxLength={10}
+            />
+            <button
+              type="button"
+              onClick={() => dateToRef.current?.showPicker()}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label="Pick end date"
+            >
+              <Calendar className="h-4 w-4" />
+            </button>
+            <input
+              ref={dateToRef}
+              type="date"
+              className="sr-only"
+              tabIndex={-1}
+              onChange={(e) => handleDatePick(e.target.value, setDateTo)}
+            />
+          </div>
         </div>
-
         {hasActiveFilters && (
           <Button
             variant="ghost"
             size="sm"
-            onClick={clearFilters}
+            onClick={handleClearAll}
             className="text-xs h-7"
           >
             <X className="h-3 w-3 mr-1" />
@@ -180,53 +250,29 @@ export function ProductionHistoryTable({
         )}
       </div>
 
-      {/* Table */}
       <div className="rounded-lg border bg-card shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b bg-muted/50">
-              <th
-                className="px-4 py-3 text-left font-medium cursor-pointer select-none hover:bg-muted/80"
-                onClick={() => handleSort("productionDate")}
-              >
-                Date
-                <SortIcon column="productionDate" />
-              </th>
-              <th
-                className="px-4 py-3 text-left font-medium cursor-pointer select-none hover:bg-muted/80"
-                onClick={() => handleSort("processName")}
-              >
-                Process
-                <SortIcon column="processName" />
-              </th>
-              <th
-                className="px-4 py-3 text-right font-medium cursor-pointer select-none hover:bg-muted/80"
-                onClick={() => handleSort("totalInputM3")}
-              >
-                Input m³
-                <SortIcon column="totalInputM3" />
-              </th>
-              <th
-                className="px-4 py-3 text-right font-medium cursor-pointer select-none hover:bg-muted/80"
-                onClick={() => handleSort("totalOutputM3")}
-              >
-                Output m³
-                <SortIcon column="totalOutputM3" />
-              </th>
-              <th
-                className="px-4 py-3 text-right font-medium cursor-pointer select-none hover:bg-muted/80"
-                onClick={() => handleSort("outcomePercentage")}
-              >
-                Outcome %
-                <SortIcon column="outcomePercentage" />
-              </th>
-              <th
-                className="px-4 py-3 text-right font-medium cursor-pointer select-none hover:bg-muted/80"
-                onClick={() => handleSort("wastePercentage")}
-              >
-                Waste %
-                <SortIcon column="wastePercentage" />
-              </th>
+              {columns.map((col) => (
+                <th
+                  key={col.key}
+                  className={`px-4 py-3 font-medium select-none ${col.align}`}
+                >
+                  <span className="inline-flex items-center gap-1.5">
+                    {col.label}
+                    <ColumnHeaderMenu
+                      columnKey={col.key}
+                      isNumeric={col.numeric}
+                      uniqueValues={uniqueValues[col.key] || []}
+                      activeSort={sortState}
+                      activeFilter={filterState[col.key] || new Set()}
+                      onSortChange={setSortState}
+                      onFilterChange={handleFilterChange}
+                    />
+                  </span>
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
@@ -241,22 +287,12 @@ export function ProductionHistoryTable({
               </tr>
             ) : (
               filteredEntries.map((entry) => (
-                <tr key={entry.id} className="border-b last:border-0 hover:bg-accent/50 transition-colors">
+                <tr key={entry.id} className="border-b last:border-0 hover:bg-accent/50 transition-colors cursor-pointer" onClick={() => router.push(`/production/${entry.id}`)}>
                   <td className="px-4 py-3">
-                    <Link
-                      href={`/production/${entry.id}`}
-                      className="hover:underline"
-                    >
-                      {formatDate(entry.productionDate)}
-                    </Link>
+                    {formatDate(entry.productionDate)}
                   </td>
                   <td className="px-4 py-3">
-                    <Link
-                      href={`/production/${entry.id}`}
-                      className="hover:underline"
-                    >
-                      {entry.processName}
-                    </Link>
+                    {entry.processName}
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums">
                     {fmt3(entry.totalInputM3)}
@@ -274,6 +310,34 @@ export function ProductionHistoryTable({
               ))
             )}
           </tbody>
+          {filteredEntries.length > 0 && (
+            <tfoot>
+              <tr className="border-t bg-muted/30 font-bold">
+                <td className="px-4 py-3" />
+                <td className="px-4 py-3" />
+                <td className="px-4 py-3 text-right tabular-nums">
+                  {fmt3(filteredEntries.reduce((sum, e) => sum + e.totalInputM3, 0))}
+                </td>
+                <td className="px-4 py-3 text-right tabular-nums">
+                  {fmt3(filteredEntries.reduce((sum, e) => sum + e.totalOutputM3, 0))}
+                </td>
+                <td className="px-4 py-3 text-right tabular-nums">
+                  {(() => {
+                    const totalInput = filteredEntries.reduce((sum, e) => sum + e.totalInputM3, 0);
+                    if (totalInput === 0) return "-";
+                    return fmt1(filteredEntries.reduce((sum, e) => sum + e.outcomePercentage * e.totalInputM3, 0) / totalInput) + "%";
+                  })()}
+                </td>
+                <td className="px-4 py-3 text-right tabular-nums">
+                  {(() => {
+                    const totalInput = filteredEntries.reduce((sum, e) => sum + e.totalInputM3, 0);
+                    if (totalInput === 0) return "-";
+                    return fmt1(filteredEntries.reduce((sum, e) => sum + e.wastePercentage * e.totalInputM3, 0) / totalInput) + "%";
+                  })()}
+                </td>
+              </tr>
+            </tfoot>
+          )}
         </table>
       </div>
     </div>

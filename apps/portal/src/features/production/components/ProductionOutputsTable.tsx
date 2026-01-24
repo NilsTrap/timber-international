@@ -146,6 +146,7 @@ export function ProductionOutputsTable({
         totalType: "sum",
         formatTotal: (value) => formatVolumeDisplay(value.toFixed(3)),
         getValue: (row) => row.volumeM3,
+        getDisplayValue: (row) => formatVolumeDisplay(String(row.volumeM3 || 0)),
         renderCell: (row, renderIndex, _originalIndex, onChange, onKeyDown) => {
           if (row.volumeIsCalculated) {
             return (

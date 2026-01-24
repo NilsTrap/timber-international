@@ -329,7 +329,7 @@ export function ReferenceOptionsTable({
                   </TableCell>
                   <TableCell className="font-medium">{option.value}</TableCell>
                   {isProcesses && (
-                    <TableCell className="font-mono text-sm">{option.code || "—"}</TableCell>
+                    <TableCell className="font-mono text-sm">{option.code || "-"}</TableCell>
                   )}
                   <TableCell>
                     <Badge variant={option.isActive ? "success" : "secondary"}>

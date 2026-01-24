@@ -6,7 +6,7 @@ interface ProductionSummaryProps {
 }
 
 function formatVolume(value: number): string {
-  if (value === 0) return "—";
+  if (value === 0) return "-";
   return new Intl.NumberFormat("lv", {
     minimumFractionDigits: 3,
     maximumFractionDigits: 3,
@@ -14,7 +14,7 @@ function formatVolume(value: number): string {
 }
 
 function formatPercent(value: number | null): string {
-  if (value === null) return "—";
+  if (value === null) return "-";
   return new Intl.NumberFormat("lv", {
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,

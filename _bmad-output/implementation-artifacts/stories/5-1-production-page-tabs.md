@@ -1,6 +1,6 @@
 # Story 5.1: Production Page Tabs (Active + History)
 
-Status: review
+Status: done
 
 ## Story
 
@@ -47,11 +47,6 @@ so that I can review past production entries without navigating away from the Pr
 **When** I view the "History" tab
 **Then** I see an empty state "No production history yet"
 
-### AC7: Remove Sidebar "History" Item
-**Given** the sidebar currently shows a "History" item for producers
-**When** this story is implemented
-**Then** the "History" sidebar item is removed (history lives inside the Production page tabs)
-
 ## Tasks / Subtasks
 
 - [x] Task 1: Separate Active and History data fetching (AC: 1, 2)
@@ -60,12 +55,11 @@ so that I can review past production entries without navigating away from the Pr
   - [x] Define `ProductionHistoryItem` type with: id, processName, productionDate, totalInputM3, totalOutputM3, outcomePercentage, wastePercentage, validatedAt
   - [x] Update `actions/index.ts` barrel exports
 
-- [x] Task 2: Create Production Page Tabs layout (AC: 1, 7)
+- [x] Task 2: Create Production Page Tabs layout (AC: 1)
   - [x] Create `ProductionPageTabs` client component with Tabs from `@timber/ui`
   - [x] Move "New Production" form + DraftProductionList into "Active" tab content
   - [x] Add "History" tab content placeholder
   - [x] Update `page.tsx` to use ProductionPageTabs (fetch both drafts and history data on server)
-  - [x] Remove "History" from PRODUCER_NAV_ITEMS in `SidebarWrapper.tsx`
 
 - [x] Task 3: Create History Table component (AC: 2)
   - [x] Create `ProductionHistoryTable` client component
@@ -86,10 +80,10 @@ so that I can review past production entries without navigating away from the Pr
   - [x] Show "No production history yet" centered text when history array is empty
   - [x] Also handle "no results" when filters yield 0 matches ("No entries match your filters")
 
-- [x] Task 6: History row navigation (AC: 5)
-  - [x] Each history row is a clickable link to `/production/{id}`
-  - [x] The existing `[id]/page.tsx` already renders validated entries in read-only mode
-  - [x] No changes needed to the detail page itself for this story (correction button is Story 5.2)
+- [x] Task 6: History row navigation + detail view (AC: 5)
+  - [x] Each history row is clickable, navigates to `/production/{id}`
+  - [x] Detail page fetches reference dropdowns for read-only display
+  - [x] Add disabled "Create Correction" button on validated entries (placeholder for Story 5.2)
 
 - [x] Task 7: Verification (AC: all)
   - [x] Build passes: `npx turbo build --filter=@timber/portal`
@@ -101,7 +95,6 @@ so that I can review past production entries without navigating away from the Pr
   - [x] Date range filter works
   - [x] Clicking a history row navigates to read-only detail view
   - [x] Empty state shown when no history exists
-  - [x] Sidebar no longer shows "History" item for producers
 
 ## Dev Notes
 
@@ -129,7 +122,6 @@ apps/portal/src/features/production/
 │   └── DraftProductionList.tsx                   (unchanged — still renders draft list)
 └── types.ts                                      (MODIFY — add ProductionHistoryItem)
 
-apps/portal/src/components/layout/SidebarWrapper.tsx  (MODIFY — remove History nav item)
 ```
 
 ### Data Model for History Items
@@ -203,18 +195,6 @@ Column headers toggle sort direction when clicked. Use chevron icons to indicate
 
 Both filters are additive (AND logic).
 
-### Sidebar Update
-
-Remove the History nav item from `PRODUCER_NAV_ITEMS` in `SidebarWrapper.tsx`:
-```diff
-const PRODUCER_NAV_ITEMS: NavItem[] = [
-  { href: "/dashboard", label: "Dashboard", iconName: "LayoutDashboard" },
-  { href: "/inventory", label: "Inventory", iconName: "Package" },
-  { href: "/production", label: "Production", iconName: "Factory" },
-- { href: "/history", label: "History", iconName: "History" },
-];
-```
-
 ### Previous Story Intelligence (4-5)
 
 Key learnings from Story 4-5:
@@ -240,8 +220,6 @@ Key learnings from Story 4-5:
 - Date range and process type filters
 - Row click navigates to existing detail view
 - Empty state for no history
-- Remove "History" sidebar item
-
 **Out of scope (later stories):**
 - "Create Correction" button functionality (Story 5.2 — button visible but non-functional or hidden until 5.2)
 - Dashboard metrics (Story 5.3)
@@ -254,7 +232,6 @@ Key learnings from Story 4-5:
 - [Source: apps/portal/src/app/(portal)/production/page.tsx — current page structure]
 - [Source: apps/portal/src/features/production/actions/getDraftProductions.ts — current query]
 - [Source: apps/portal/src/features/production/types.ts — existing types]
-- [Source: apps/portal/src/components/layout/SidebarWrapper.tsx — PRODUCER_NAV_ITEMS]
 - [Source: packages/ui/src/components/tabs.tsx — Tabs component API]
 - [Source: apps/portal/src/app/(portal)/production/[id]/page.tsx — detail page readOnly mode]
 - [Source: _bmad-output/project-context.md — coding standards]
@@ -273,8 +250,6 @@ Claude Opus 4.5
 - Created `ProductionPageTabs` client component using `@timber/ui` Tabs (Radix-based)
 - Created `ProductionHistoryTable` with sortable columns, process filter dropdown, date range filter, empty states, and row navigation links
 - Updated `page.tsx` to fetch both drafts and validated entries in parallel, passing to tab component
-- Removed "History" from producer sidebar navigation
-- Deleted orphaned `/history` placeholder page (was a placeholder from Epic 4)
 - Build passes with 0 TypeScript errors
 
 ### File List
@@ -285,13 +260,11 @@ Claude Opus 4.5
 - `apps/portal/src/features/production/actions/index.ts` (MODIFIED — added getValidatedProductions export)
 - `apps/portal/src/features/production/types.ts` (MODIFIED — added ProductionHistoryItem)
 - `apps/portal/src/app/(portal)/production/page.tsx` (MODIFIED — tabs layout, fetch history)
-- `apps/portal/src/components/layout/SidebarWrapper.tsx` (MODIFIED — removed History nav item)
-- `apps/portal/src/app/(portal)/history/page.tsx` (DELETED — history now in production tabs)
+- `apps/portal/src/app/(portal)/production/[id]/page.tsx` (MODIFIED — Create Correction button, always fetch dropdowns)
 
 ### Change Log
 - Added tabbed layout to Production page (Active + History tabs)
 - Created getValidatedProductions action for fetching validated entries with metrics
 - Refactored getDraftProductions to only return draft entries
 - Created ProductionHistoryTable with sortable columns, process/date filters, and clickable rows
-- Removed History from sidebar navigation and deleted placeholder page
 - Added ProductionHistoryItem type for history data

@@ -216,7 +216,7 @@ For overview/list views, use `DataEntryTable` with the `readOnly` prop:
 - Retains: collapsible columns, sort/filter menus, totals footer
 - Hides: add button, copy/delete actions, input fields
 - Sort is display-only (doesn't mutate source data)
-- Display "—" for null/empty values, volume to 3 decimal places
+- Display "-" for null/empty values, volume to 3 decimal places
 
 ### Reference Data (7 Dropdowns)
 

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Button } from "@timber/ui";
 import { formatDate } from "@/lib/utils";
 import {
   getProductionEntry,
@@ -53,22 +54,20 @@ export default async function ProductionEntryPage({
     types: [], processing: [], fsc: [], quality: [],
   };
 
-  // Always fetch inputs and outputs (needed for both draft and validated views)
-  const [inputResult, outputResult] = await Promise.all([
+  // Always fetch inputs, outputs, and dropdowns (dropdowns needed to display values in read-only too)
+  const [inputResult, outputResult, dropdownResult] = await Promise.all([
     getProductionInputs(id),
     getProductionOutputs(id),
+    getReferenceDropdownsForProducer(),
   ]);
   if (inputResult.success) initialInputs = inputResult.data;
   if (outputResult.success) initialOutputs = outputResult.data;
+  if (dropdownResult.success) dropdowns = dropdownResult.data;
 
-  // Only fetch packages and dropdowns for draft entries (edit-only data)
+  // Only fetch packages for draft entries (edit-only data)
   if (isDraft) {
-    const [pkgResult, dropdownResult] = await Promise.all([
-      getAvailablePackages(id),
-      getReferenceDropdownsForProducer(),
-    ]);
+    const pkgResult = await getAvailablePackages(id);
     if (pkgResult.success) initialPackages = pkgResult.data;
-    if (dropdownResult.success) dropdowns = dropdownResult.data;
   }
 
   // Compute initial totals server-side for instant display (no layout shift)
@@ -86,15 +85,22 @@ export default async function ProductionEntryPage({
             Production date: {productionDate}
           </p>
         </div>
-        <span
-          className={`text-xs px-2.5 py-1 rounded-full font-medium ${
-            isDraft
-              ? "bg-yellow-100 text-yellow-800"
-              : "bg-green-100 text-green-800"
-          }`}
-        >
-          {isDraft ? "Draft" : "Validated"}
-        </span>
+        <div className="flex items-center gap-3">
+          {!isDraft && (
+            <Button variant="outline" size="sm" disabled>
+              Create Correction
+            </Button>
+          )}
+          <span
+            className={`text-xs px-2.5 py-1 rounded-full font-medium ${
+              isDraft
+                ? "bg-yellow-100 text-yellow-800"
+                : "bg-green-100 text-green-800"
+            }`}
+          >
+            {isDraft ? "Draft" : "Validated"}
+          </span>
+        </div>
       </div>
 
       <ProductionEntryClient

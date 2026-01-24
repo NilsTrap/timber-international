@@ -28,7 +28,7 @@
 ### AC2: Producer Navigation
 **Given** I am logged in as Producer
 **When** I view the dashboard
-**Then** I see navigation links: Dashboard, Inventory (view), Production, History
+**Then** I see navigation links: Dashboard, Inventory (view), Production
 **And** the dashboard shows a "Production Dashboard" header
 
 ### AC3: Route Protection
@@ -73,7 +73,7 @@ This story implements role-based navigation by reading the user's role from the 
 2. Update TopNav to be a Server Component that fetches session
 3. Define navigation items per role:
    - **Admin:** Dashboard, Inventory, Products
-   - **Producer:** Dashboard, Inventory, Production, History
+   - **Producer:** Dashboard, Inventory, Production
 4. Conditionally render navigation items based on role
 5. Add role-specific icons using lucide-react
 
@@ -89,7 +89,6 @@ const PRODUCER_NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/inventory", label: "Inventory", icon: Package },
   { href: "/production", label: "Production", icon: Factory },
-  { href: "/history", label: "History", icon: History },
 ];
 ```
 
@@ -246,13 +245,11 @@ export function AccessDeniedHandler() {
 **Files to create:**
 - `apps/portal/src/app/(portal)/products/page.tsx` - Admin products page
 - `apps/portal/src/app/(portal)/production/page.tsx` - Producer production page
-- `apps/portal/src/app/(portal)/history/page.tsx` - Producer history page
 
 **Subtasks:**
 1. Create `/products` page with "Product Management" heading (admin only)
 2. Create `/production` page with "Production Entry" heading (producer)
-3. Create `/history` page with "Production History" heading (producer)
-4. Each page should show placeholder "Coming in next story" message
+3. Each page should show placeholder "Coming in next story" message
 
 ---
 
@@ -287,9 +284,7 @@ apps/portal/src/
 │   │   └── page.tsx             # Role-specific dashboard
 │   ├── products/
 │   │   └── page.tsx             # Admin only
-│   ├── production/
-│   │   └── page.tsx             # Producer only
-│   └── history/
+│   └── production/
 │       └── page.tsx             # Producer only
 └── middleware.ts                # Route protection
 ```
@@ -303,7 +298,6 @@ apps/portal/src/
 | Admin | /products | Products | Boxes |
 | Producer | /inventory | Inventory | Package |
 | Producer | /production | Production | Factory |
-| Producer | /history | History | History |
 
 ### Route Protection Matrix
 
@@ -329,7 +323,7 @@ apps/portal/src/
 ### Testing Checklist
 
 - [x] Admin sees correct navigation items (Dashboard, Inventory, Products)
-- [x] Producer sees correct navigation items (Dashboard, Inventory, Production, History)
+- [x] Producer sees correct navigation items (Dashboard, Inventory, Production)
 - [x] Admin dashboard shows "Admin Overview" header
 - [x] Producer dashboard shows "Production Dashboard" header
 - [x] Producer cannot access /products route
@@ -392,7 +386,6 @@ Completed 2026-01-22. All acceptance criteria met.
 | `apps/portal/src/app/(portal)/dashboard/page.tsx` | Modified | Role-specific headers and content (AdminDashboardContent, ProducerDashboardContent) |
 | `apps/portal/src/app/(portal)/products/page.tsx` | Created | Admin-only products page |
 | `apps/portal/src/app/(portal)/production/page.tsx` | Created | Production page placeholder |
-| `apps/portal/src/app/(portal)/history/page.tsx` | Created | History page placeholder |
 | `apps/portal/src/app/(portal)/inventory/page.tsx` | Created | Inventory page with role-aware content |
 | `apps/portal/src/app/(portal)/profile/page.tsx` | Created | Profile page showing session info |
 | `apps/portal/src/middleware.ts` | Modified | Added ADMIN_ONLY_ROUTES and role-based route protection |
