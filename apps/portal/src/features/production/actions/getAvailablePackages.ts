@@ -49,45 +49,66 @@ export async function getAvailablePackages(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const usedPackageIds = (existingInputs as any[]).map((i: any) => i.package_id);
 
-  // Fetch all packages at producer's facility
+  const refSelect = `
+    ref_product_names!inventory_packages_product_name_id_fkey(value),
+    ref_wood_species!inventory_packages_wood_species_id_fkey(value),
+    ref_humidity!inventory_packages_humidity_id_fkey(value),
+    ref_types!inventory_packages_type_id_fkey(value),
+    ref_processing!inventory_packages_processing_id_fkey(value),
+    ref_fsc!inventory_packages_fsc_id_fkey(value),
+    ref_quality!inventory_packages_quality_id_fkey(value)
+  `;
+
+  // Query 1: Shipment-sourced packages at producer's facility (exclude consumed)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let query = (supabase as any)
+  let shipmentQuery = (supabase as any)
     .from("inventory_packages")
     .select(`
-      id,
-      package_number,
-      shipment_id,
-      thickness,
-      width,
-      length,
-      pieces,
-      volume_m3,
+      id, package_number, shipment_id, thickness, width, length, pieces, volume_m3,
       shipments!inner!inventory_packages_shipment_id_fkey(shipment_code, to_party_id),
-      ref_product_names!inventory_packages_product_name_id_fkey(value),
-      ref_wood_species!inventory_packages_wood_species_id_fkey(value),
-      ref_humidity!inventory_packages_humidity_id_fkey(value),
-      ref_types!inventory_packages_type_id_fkey(value),
-      ref_processing!inventory_packages_processing_id_fkey(value),
-      ref_fsc!inventory_packages_fsc_id_fkey(value),
-      ref_quality!inventory_packages_quality_id_fkey(value)
+      ${refSelect}
     `)
     .eq("shipments.to_party_id", session.partyId)
+    .neq("status", "consumed")
     .order("package_number", { ascending: true });
 
-  // Exclude packages already used in this entry
   if (usedPackageIds.length > 0) {
-    query = query.not("id", "in", `(${usedPackageIds.join(",")})`);
+    shipmentQuery = shipmentQuery.not("id", "in", `(${usedPackageIds.join(",")})`);
   }
 
-  const { data, error } = await query;
+  // Query 2: Production-sourced packages owned by this producer (status: produced)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let productionQuery = (supabase as any)
+    .from("inventory_packages")
+    .select(`
+      id, package_number, shipment_id, thickness, width, length, pieces, volume_m3,
+      portal_production_entries!inner(created_by),
+      ${refSelect}
+    `)
+    .eq("portal_production_entries.created_by", session.id)
+    .eq("status", "produced")
+    .order("package_number", { ascending: true });
 
-  if (error) {
-    console.error("Failed to fetch available packages:", error);
-    return { success: false, error: `Failed to fetch packages: ${error.message}`, code: "QUERY_FAILED" };
+  if (usedPackageIds.length > 0) {
+    productionQuery = productionQuery.not("id", "in", `(${usedPackageIds.join(",")})`);
   }
+
+  const [shipmentResult, productionResult] = await Promise.all([shipmentQuery, productionQuery]);
+
+  if (shipmentResult.error) {
+    console.error("Failed to fetch shipment packages:", shipmentResult.error);
+    return { success: false, error: `Failed to fetch packages: ${shipmentResult.error.message}`, code: "QUERY_FAILED" };
+  }
+
+  if (productionResult.error) {
+    console.error("Failed to fetch production packages:", productionResult.error);
+    // Non-fatal: continue with shipment packages only
+  }
+
+  const allData = [...(shipmentResult.data ?? []), ...(productionResult.data ?? [])];
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const packages: PackageListItem[] = (data as any[]).map((pkg: any) => ({
+  const packages: PackageListItem[] = allData.map((pkg: any) => ({
     id: pkg.id,
     packageNumber: pkg.package_number,
     shipmentCode: pkg.shipments?.shipment_code ?? "",

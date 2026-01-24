@@ -22,6 +22,8 @@ interface ProductionOutputsSectionProps {
   inputs: ProductionInput[];
   processCode: string;
   onTotalChange?: (totalM3: number) => void;
+  onCountChange?: (count: number) => void;
+  readOnly?: boolean;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -64,6 +66,8 @@ export function ProductionOutputsSection({
   inputs,
   processCode,
   onTotalChange,
+  onCountChange,
+  readOnly,
 }: ProductionOutputsSectionProps) {
   const [rows, setRows] = useState<OutputRow[]>(() =>
     initialOutputs.map((o, i) => dbOutputToRow(o, i, processCode))
@@ -82,6 +86,10 @@ export function ProductionOutputsSection({
   useEffect(() => {
     onTotalChange?.(totalM3);
   }, [totalM3, onTotalChange]);
+
+  useEffect(() => {
+    onCountChange?.(rows.length);
+  }, [rows.length, onCountChange]);
 
   // ─── Save Logic ─────────────────────────────────────────────────────────────
 
@@ -246,6 +254,7 @@ export function ProductionOutputsSection({
   }, [rows, debouncedSave, processCode]);
 
   useEffect(() => {
+    if (readOnly) return;
     const handler = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "o") {
         e.preventDefault();
@@ -254,7 +263,7 @@ export function ProductionOutputsSection({
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [handleAddRow]);
+  }, [handleAddRow, readOnly]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -277,7 +286,7 @@ export function ProductionOutputsSection({
             <span className="text-xs text-muted-foreground animate-pulse">Saving...</span>
           )}
         </div>
-        {inputs.length > 0 && (
+        {!readOnly && inputs.length > 0 && (
           <Button
             variant="outline"
             size="sm"
@@ -295,6 +304,7 @@ export function ProductionOutputsSection({
         dropdowns={dropdowns}
         onRowsChange={handleRowsChange}
         processCode={processCode}
+        readOnly={readOnly}
       />
     </div>
   );

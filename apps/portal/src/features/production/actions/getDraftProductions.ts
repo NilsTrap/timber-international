@@ -5,7 +5,7 @@ import { getSession } from "@/lib/auth";
 import type { ProductionListItem, ActionResult } from "../types";
 
 /**
- * Fetch all draft production entries with joined process name.
+ * Fetch all production entries (draft + validated) with joined process name.
  * Ordered by most recently created first.
  */
 export async function getDraftProductions(): Promise<
@@ -21,7 +21,6 @@ export async function getDraftProductions(): Promise<
   const { data, error } = await (supabase as any)
     .from("portal_production_entries")
     .select("id, production_date, status, created_at, ref_processes(value)")
-    .eq("status", "draft")
     .eq("created_by", session.id)
     .order("created_at", { ascending: false });
 

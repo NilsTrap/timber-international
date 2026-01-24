@@ -343,9 +343,11 @@ export function PackageSelector({
     const pkg = packages.find((p) => p.id === packageId);
     const maxVolume = pkg?.volumeM3;
     let capped = num;
-    if (maxVolume != null && num > maxVolume) {
-      toast.error(`Volume cannot exceed available (${maxVolume.toFixed(3).replace(".", ",")} m³)`);
-      capped = maxVolume;
+    const roundedNum = Math.round(num * 1000) / 1000;
+    const roundedMax = maxVolume != null ? Math.round(maxVolume * 1000) / 1000 : null;
+    if (roundedMax != null && roundedNum > roundedMax) {
+      toast.error(`Volume cannot exceed available (${maxVolume!.toFixed(3).replace(".", ",")} m³)`);
+      capped = maxVolume!;
     }
     const formatted = normalizeVolumePrecision(String(capped));
     setSelected((prev) => {
@@ -372,7 +374,7 @@ export function PackageSelector({
         return;
       }
 
-      if (pkg.volumeM3 != null && volumeNum > pkg.volumeM3) {
+      if (pkg.volumeM3 != null && Math.round(volumeNum * 1000) / 1000 > Math.round(pkg.volumeM3 * 1000) / 1000) {
         toast.error(`Package ${pkg.packageNumber}: Volume exceeds available inventory`);
         return;
       }

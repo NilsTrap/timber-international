@@ -59,16 +59,19 @@ export async function updateProductionInput(
     return { success: false, error: "Input not found", code: "NOT_FOUND" };
   }
 
-  // Verify production entry ownership
+  // Verify production entry ownership and draft status
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: entry, error: entryError } = await (supabase as any)
     .from("portal_production_entries")
-    .select("created_by")
+    .select("created_by, status")
     .eq("id", input.production_entry_id)
     .single();
 
   if (entryError || !entry || entry.created_by !== session.id) {
     return { success: false, error: "Permission denied", code: "FORBIDDEN" };
+  }
+  if (entry.status !== "draft") {
+    return { success: false, error: "Cannot modify a validated production entry", code: "VALIDATION_FAILED" };
   }
 
   const pkg = input.inventory_packages;
@@ -81,10 +84,12 @@ export async function updateProductionInput(
     }
   }
 
-  // Validate volume_m3 <= package total volume
+  // Validate volume_m3 <= package total volume (with precision tolerance matching display)
   if (pkg?.volume_m3 != null) {
     const packageVolume = Number(pkg.volume_m3);
-    if (volumeM3 > packageVolume) {
+    const roundedRequest = Math.round(volumeM3 * 1000) / 1000;
+    const roundedAvailable = Math.round(packageVolume * 1000) / 1000;
+    if (roundedRequest > roundedAvailable) {
       return { success: false, error: "Volume exceeds available inventory", code: "VALIDATION_FAILED" };
     }
   }

@@ -27,6 +27,7 @@ interface ProductionInputsTableProps {
   inputs: ProductionInput[];
   onInputsChanged: () => void;
   onFilterActiveChange?: (active: boolean) => void;
+  readOnly?: boolean;
 }
 
 interface ColConfig {
@@ -60,6 +61,7 @@ export const ProductionInputsTable = forwardRef<ProductionInputsTableHandle, Pro
   inputs,
   onInputsChanged,
   onFilterActiveChange,
+  readOnly,
 }, ref) {
   const [isPending, startTransition] = useTransition();
   const [editingCell, setEditingCell] = useState<{ id: string; field: "pieces" | "volume" } | null>(null);
@@ -87,7 +89,7 @@ export const ProductionInputsTable = forwardRef<ProductionInputsTableHandle, Pro
       { key: "processing", label: "Processing", collapsible: true, getValue: (r) => r.processing ?? "" },
       { key: "fsc", label: "FSC", collapsible: true, getValue: (r) => r.fsc ?? "" },
       { key: "quality", label: "Quality", collapsible: true, getValue: (r) => r.quality ?? "" },
-      { key: "thickness", label: "Thick.", isNumeric: true, getValue: (r) => r.thickness ?? "", width: "w-[4.5rem]" },
+      { key: "thickness", label: "Thickness", isNumeric: true, getValue: (r) => r.thickness ?? "", width: "w-[4.5rem]" },
       { key: "width", label: "Width", isNumeric: true, getValue: (r) => r.width ?? "", width: "w-[4.5rem]" },
       { key: "length", label: "Length", isNumeric: true, getValue: (r) => r.length ?? "", width: "w-[4.5rem]" },
     ],
@@ -310,7 +312,7 @@ export const ProductionInputsTable = forwardRef<ProductionInputsTableHandle, Pro
                     <span className="flex items-center gap-0.5">
                       {col.collapsible && (
                         <span className="text-muted-foreground text-[10px]">
-                          {isCollapsed ? "▸" : "▾"}
+                          {isCollapsed ? "›" : "‹"}
                         </span>
                       )}
                       {isCollapsed ? col.label.slice(0, 3) : col.label}
@@ -358,7 +360,7 @@ export const ProductionInputsTable = forwardRef<ProductionInputsTableHandle, Pro
                 </span>
               </TableHead>
               {/* Delete header */}
-              <TableHead className="px-1 w-[40px]" />
+              {!readOnly && <TableHead className="px-1 w-[40px]" />}
             </TableRow>
           </TableHeader>
 
@@ -398,10 +400,12 @@ export const ProductionInputsTable = forwardRef<ProductionInputsTableHandle, Pro
                     );
                   })}
 
-                  {/* Pieces cell - editable */}
+                  {/* Pieces cell */}
                   <TableCell className="px-1">
                     {hasPieces ? (
-                      isEditingPieces ? (
+                      readOnly ? (
+                        <span className="text-xs px-1">{row.piecesUsed != null ? row.piecesUsed : "—"}</span>
+                      ) : isEditingPieces ? (
                         <Input
                           className="h-7 text-xs px-1 w-[4.5rem]"
                           value={editValue}
@@ -425,10 +429,10 @@ export const ProductionInputsTable = forwardRef<ProductionInputsTableHandle, Pro
                     )}
                   </TableCell>
 
-                  {/* Volume cell - read-only when auto-calculated, editable otherwise */}
+                  {/* Volume cell */}
                   <TableCell className="px-1">
-                    {volumeIsCalculated ? (
-                      <span className="text-xs px-1 py-0.5 w-[5rem] inline-block" title="Auto-calculated from pieces × dimensions">
+                    {readOnly || volumeIsCalculated ? (
+                      <span className="text-xs px-1 py-0.5 w-[5rem] inline-block">
                         {row.volumeM3.toFixed(3).replace(".", ",")}
                       </span>
                     ) : isEditingVolume ? (
@@ -453,18 +457,20 @@ export const ProductionInputsTable = forwardRef<ProductionInputsTableHandle, Pro
                   </TableCell>
 
                   {/* Delete button */}
-                  <TableCell className="px-1">
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={() => handleDelete(row.id)}
-                      disabled={isPending}
-                      aria-label="Remove input"
-                      title="Remove input"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </TableCell>
+                  {!readOnly && (
+                    <TableCell className="px-1">
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => handleDelete(row.id)}
+                        disabled={isPending}
+                        aria-label="Remove input"
+                        title="Remove input"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </TableCell>
+                  )}
                 </TableRow>
               );
             })}
@@ -491,7 +497,7 @@ export const ProductionInputsTable = forwardRef<ProductionInputsTableHandle, Pro
                   {totals.volume > 0 ? totals.volume.toFixed(3).replace(".", ",") : ""}
                 </TableCell>
                 {/* Delete column */}
-                <TableCell className="px-1" />
+                {!readOnly && <TableCell className="px-1" />}
               </TableRow>
             </TableFooter>
           )}

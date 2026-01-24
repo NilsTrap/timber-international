@@ -827,7 +827,7 @@ NFR46: Loading states for operations > 1 second
 **Given** I press Ctrl+Enter
 **When** I have a valid production entry
 **Then** the validation dialog opens
-**And** the shortcut hint "Ctrl+Enter" is visibly displayed next to or on the "Validate" button
+**And** the shortcut hint "Ctrl+Enter" is visibly displayed on the "Validate" button
 
 ---
 

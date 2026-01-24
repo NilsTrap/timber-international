@@ -43,7 +43,7 @@ export default async function ProductionEntryPage({
   const productionDate = new Date(rawDate + "T00:00:00").toLocaleDateString();
   const isDraft = status === "draft";
 
-  // Fetch inputs + outputs data for draft entries
+  // Fetch inputs + outputs data for all entries
   let initialPackages: PackageListItem[] = [];
   let initialInputs: ProductionInput[] = [];
   let initialOutputs: ProductionOutput[] = [];
@@ -52,16 +52,21 @@ export default async function ProductionEntryPage({
     types: [], processing: [], fsc: [], quality: [],
   };
 
+  // Always fetch inputs and outputs (needed for both draft and validated views)
+  const [inputResult, outputResult] = await Promise.all([
+    getProductionInputs(id),
+    getProductionOutputs(id),
+  ]);
+  if (inputResult.success) initialInputs = inputResult.data;
+  if (outputResult.success) initialOutputs = outputResult.data;
+
+  // Only fetch packages and dropdowns for draft entries (edit-only data)
   if (isDraft) {
-    const [pkgResult, inputResult, outputResult, dropdownResult] = await Promise.all([
+    const [pkgResult, dropdownResult] = await Promise.all([
       getAvailablePackages(id),
-      getProductionInputs(id),
-      getProductionOutputs(id),
       getReferenceDropdownsForProducer(),
     ]);
     if (pkgResult.success) initialPackages = pkgResult.data;
-    if (inputResult.success) initialInputs = inputResult.data;
-    if (outputResult.success) initialOutputs = outputResult.data;
     if (dropdownResult.success) dropdowns = dropdownResult.data;
   }
 
@@ -91,18 +96,17 @@ export default async function ProductionEntryPage({
         </span>
       </div>
 
-      {isDraft && (
-        <ProductionEntryClient
-          productionEntryId={id}
-          initialPackages={initialPackages}
-          initialInputs={initialInputs}
-          initialOutputs={initialOutputs}
-          dropdowns={dropdowns}
-          processCode={processCode}
-          initialInputTotal={initialInputTotal}
-          initialOutputTotal={initialOutputTotal}
-        />
-      )}
+      <ProductionEntryClient
+        productionEntryId={id}
+        initialPackages={initialPackages}
+        initialInputs={initialInputs}
+        initialOutputs={initialOutputs}
+        dropdowns={dropdowns}
+        processCode={processCode}
+        initialInputTotal={initialInputTotal}
+        initialOutputTotal={initialOutputTotal}
+        readOnly={!isDraft}
+      />
     </div>
   );
 }

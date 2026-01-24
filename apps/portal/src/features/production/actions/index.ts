@@ -10,3 +10,4 @@ export { updateProductionInput } from "./updateProductionInput";
 export { getReferenceDropdownsForProducer } from "./getReferenceDropdownsForProducer";
 export { getProductionOutputs } from "./getProductionOutputs";
 export { saveProductionOutputs } from "./saveProductionOutputs";
+export { validateProduction } from "./validateProduction";

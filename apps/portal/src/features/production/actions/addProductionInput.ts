@@ -48,11 +48,11 @@ export async function addProductionInput(
 
   const supabase = await createClient();
 
-  // Verify production entry exists and belongs to this user
+  // Verify production entry exists, belongs to this user, and is still draft
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: entry, error: entryError } = await (supabase as any)
     .from("portal_production_entries")
-    .select("id, created_by")
+    .select("id, created_by, status")
     .eq("id", productionEntryId)
     .single();
 
@@ -61,6 +61,9 @@ export async function addProductionInput(
   }
   if (entry.created_by !== session.id) {
     return { success: false, error: "Permission denied", code: "FORBIDDEN" };
+  }
+  if (entry.status !== "draft") {
+    return { success: false, error: "Cannot modify a validated production entry", code: "VALIDATION_FAILED" };
   }
 
   // Fetch the package to validate constraints
@@ -83,10 +86,12 @@ export async function addProductionInput(
     }
   }
 
-  // Validate volume_m3 <= package total volume
+  // Validate volume_m3 <= package total volume (with precision tolerance matching display)
   if (pkg.volume_m3 != null) {
     const packageVolume = Number(pkg.volume_m3);
-    if (volumeM3 > packageVolume) {
+    const roundedRequest = Math.round(volumeM3 * 1000) / 1000;
+    const roundedAvailable = Math.round(packageVolume * 1000) / 1000;
+    if (roundedRequest > roundedAvailable) {
       return { success: false, error: "Volume exceeds available inventory", code: "VALIDATION_FAILED" };
     }
   }

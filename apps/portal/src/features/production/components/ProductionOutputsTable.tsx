@@ -17,6 +17,7 @@ interface ProductionOutputsTableProps {
   dropdowns: ReferenceDropdowns;
   onRowsChange: (rows: OutputRow[]) => void;
   processCode: string;
+  readOnly?: boolean;
 }
 
 /** Dropdown column configuration */
@@ -73,6 +74,7 @@ export function ProductionOutputsTable({
   dropdowns,
   onRowsChange,
   processCode,
+  readOnly,
 }: ProductionOutputsTableProps) {
   const columns: ColumnDef<OutputRow>[] = useMemo(() => {
     const cols: ColumnDef<OutputRow>[] = [
@@ -239,6 +241,7 @@ export function ProductionOutputsTable({
       allowEmpty
       collapseStorageKey="production-outputs-collapsed"
       idPrefix="out"
+      readOnly={readOnly}
     />
   );
 }

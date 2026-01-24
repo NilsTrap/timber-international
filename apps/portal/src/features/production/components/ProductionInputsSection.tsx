@@ -14,6 +14,8 @@ interface ProductionInputsSectionProps {
   initialPackages: PackageListItem[];
   initialInputs: ProductionInput[];
   onTotalChange?: (totalM3: number) => void;
+  onCountChange?: (count: number) => void;
+  readOnly?: boolean;
 }
 
 /**
@@ -27,6 +29,8 @@ export function ProductionInputsSection({
   initialPackages,
   initialInputs,
   onTotalChange,
+  onCountChange,
+  readOnly,
 }: ProductionInputsSectionProps) {
   const [selectorOpen, setSelectorOpen] = useState(false);
   const [packages, setPackages] = useState<PackageListItem[]>(initialPackages);
@@ -48,6 +52,7 @@ export function ProductionInputsSection({
 
   // Ctrl+I keyboard shortcut to open package selector
   useEffect(() => {
+    if (readOnly) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "i") {
         e.preventDefault();
@@ -56,13 +61,17 @@ export function ProductionInputsSection({
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [readOnly]);
 
   const totalVolumeM3 = useMemo(() => inputs.reduce((sum, i) => sum + i.volumeM3, 0), [inputs]);
 
   useEffect(() => {
     onTotalChange?.(totalVolumeM3);
   }, [totalVolumeM3, onTotalChange]);
+
+  useEffect(() => {
+    onCountChange?.(inputs.length);
+  }, [inputs.length, onCountChange]);
 
   return (
     <div className="space-y-3">
@@ -82,18 +91,20 @@ export function ProductionInputsSection({
               Clear Filters
             </Button>
           )}
-          <Button variant="outline" size="sm" onClick={() => setSelectorOpen(true)}>
-            <Plus className="h-4 w-4 mr-1" />
-            Add Input
-            <kbd className="ml-2 text-[10px] text-muted-foreground bg-muted px-1 py-0.5 rounded border">Ctrl+I</kbd>
-          </Button>
+          {!readOnly && (
+            <Button variant="outline" size="sm" onClick={() => setSelectorOpen(true)}>
+              <Plus className="h-4 w-4 mr-1" />
+              Add Input
+              <kbd className="ml-2 text-[10px] text-muted-foreground bg-muted px-1 py-0.5 rounded border">Ctrl+I</kbd>
+            </Button>
+          )}
         </div>
       </div>
 
       {inputs.length === 0 ? (
         <div className="rounded-lg border bg-card p-6 text-center">
           <p className="text-sm text-muted-foreground">
-            No inputs added yet. Click &quot;+ Add Input&quot; to select packages from inventory.
+            {readOnly ? "No inputs were used in this production." : "No inputs added yet. Click \"+ Add Input\" to select packages from inventory."}
           </p>
         </div>
       ) : (
@@ -102,16 +113,19 @@ export function ProductionInputsSection({
           inputs={inputs}
           onInputsChanged={refreshData}
           onFilterActiveChange={setInputsFilterActive}
+          readOnly={readOnly}
         />
       )}
 
-      <PackageSelector
-        open={selectorOpen}
-        onOpenChange={setSelectorOpen}
-        productionEntryId={productionEntryId}
-        packages={packages}
-        onInputAdded={refreshData}
-      />
+      {!readOnly && (
+        <PackageSelector
+          open={selectorOpen}
+          onOpenChange={setSelectorOpen}
+          productionEntryId={productionEntryId}
+          packages={packages}
+          onInputAdded={refreshData}
+        />
+      )}
     </div>
   );
 }
