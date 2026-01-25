@@ -3,21 +3,20 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getSession, isSuperAdmin } from "@/lib/auth";
-import { generateTemporaryPassword } from "@/lib/utils/generatePassword";
-import { sendPasswordResetEmail } from "@/lib/email/sendPasswordResetEmail";
 import type { ActionResult } from "../types";
 import { isValidUUID } from "../types";
 
 /**
  * Reset User Password
  *
- * Resets password for a portal user with status='active':
+ * Sends a password reset email for a portal user:
  * 1. Verify user has auth_user_id
- * 2. Generate a new temporary password
- * 3. Update auth.users password via Admin API
- * 4. Send password reset email
+ * 2. Send password reset email via Supabase Auth
+ * 3. User receives email with link to set new password
  *
  * Super Admin only endpoint.
+ *
+ * Note: Supabase free tier has a limit of 4 emails/hour.
  */
 export async function resetUserPassword(
   userId: string,
@@ -87,77 +86,44 @@ export async function resetUserPassword(
     };
   }
 
-  // 6. Get organisation name for email
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: org } = await (supabase as any)
-    .from("organisations")
-    .select("name")
-    .eq("id", organisationId)
-    .single();
-
-  const organisationName = org?.name || "Timber World";
-
-  // 7. Generate new temporary password
-  const newPassword = generateTemporaryPassword(12);
-
-  // 8. Update auth user password via Admin API
+  // 6. Send password reset email via Supabase Auth Admin API
   const supabaseAdmin = createAdminClient();
-  const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(
-    portalUser.auth_user_id as string,
-    {
-      password: newPassword,
-      user_metadata: {
-        name: portalUser.name as string,
-        role: portalUser.role as string,
-        organisation_name: organisationName,
-      },
-    }
-  );
+  const { error: resetError } = await supabaseAdmin.auth.admin.generateLink({
+    type: "recovery",
+    email: portalUser.email as string,
+    options: {
+      redirectTo: process.env.NEXT_PUBLIC_APP_URL
+        ? `${process.env.NEXT_PUBLIC_APP_URL}/login`
+        : undefined,
+    },
+  });
 
-  if (authError) {
-    console.error("Failed to update auth user password:", authError);
+  if (resetError) {
+    console.error("Failed to send password reset:", resetError);
+
+    if (resetError.message?.includes("rate limit") || resetError.message?.includes("exceeded")) {
+      return {
+        success: false,
+        error: "Email rate limit reached. Supabase allows 4 emails per hour. Please try again later.",
+        code: "RATE_LIMITED",
+      };
+    }
+
     return {
       success: false,
-      error: "Failed to reset password",
-      code: "AUTH_UPDATE_FAILED",
+      error: resetError.message || "Failed to send password reset email",
+      code: "RESET_FAILED",
     };
   }
 
-  // 9. Update updated_at timestamp in portal_users
+  // 7. Update updated_at timestamp in portal_users
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { error: updateError } = await (supabase as any)
+  await (supabase as any)
     .from("portal_users")
     .update({
       updated_at: new Date().toISOString(),
     })
     .eq("id", userId);
-
-  if (updateError) {
-    console.error("Failed to update portal_users:", updateError);
-    // Password was reset - continue with sending email
-  }
-
-  // 10. Send password reset email
-  const loginUrl =
-    process.env.NEXT_PUBLIC_APP_URL
-      ? `${process.env.NEXT_PUBLIC_APP_URL}/login`
-      : "https://portal.timber-world.com/login";
-
-  const emailResult = await sendPasswordResetEmail({
-    to: portalUser.email as string,
-    name: portalUser.name as string,
-    email: portalUser.email as string,
-    newPassword,
-    loginUrl,
-  });
-
-  if (!emailResult.success) {
-    console.error("Failed to send password reset email:", emailResult.error);
-    // Don't fail the operation - password was reset successfully
-    console.warn(
-      "Password reset but email delivery failed. User can still log in with the new password."
-    );
-  }
 
   return {
     success: true,

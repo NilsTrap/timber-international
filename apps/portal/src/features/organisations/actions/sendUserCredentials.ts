@@ -3,23 +3,23 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getSession, isSuperAdmin } from "@/lib/auth";
-import { generateTemporaryPassword } from "@/lib/utils/generatePassword";
-import { sendCredentialsEmail } from "@/lib/email/sendCredentialsEmail";
 import type { ActionResult } from "../types";
 import { isValidUUID } from "../types";
 
 /**
- * Send User Credentials
+ * Send User Credentials (Invite Flow)
  *
- * Generates login credentials for a portal user:
- * 1. Generate a temporary password
- * 2. Create auth.users record via Supabase Admin API
- * 3. Link auth_user_id in portal_users table
- * 4. Update status from 'created' to 'invited'
- * 5. Set invited_at and invited_by
- * 6. Send email with credentials
+ * Invites a portal user using Supabase's built-in invite system:
+ * 1. Send invite email via Supabase Auth (user sets their own password)
+ * 2. Link auth_user_id in portal_users table
+ * 3. Update status from 'created' to 'invited'
+ * 4. Set invited_at and invited_by
+ *
+ * The user receives an email with a magic link to set their password.
  *
  * Super Admin only endpoint.
+ *
+ * Note: Supabase free tier has a limit of 4 emails/hour.
  */
 export async function sendUserCredentials(
   userId: string,
@@ -84,12 +84,12 @@ export async function sendUserCredentials(
   if (portalUser.auth_user_id) {
     return {
       success: false,
-      error: "User already has login credentials",
+      error: "User already has login credentials. Use 'Resend' to send a new invite.",
       code: "ALREADY_HAS_CREDENTIALS",
     };
   }
 
-  // 6. Get organisation name for email
+  // 6. Get organisation name for metadata
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: org } = await (supabase as any)
     .from("organisations")
@@ -109,48 +109,54 @@ export async function sendUserCredentials(
 
   const invitedById = currentAdmin?.id ?? null;
 
-  // 8. Generate temporary password
-  const temporaryPassword = generateTemporaryPassword(12);
-
-  // 9. Create auth user via Admin API
+  // 8. Invite user via Supabase Auth Admin API
+  // This sends an email with a magic link for the user to set their password
   const supabaseAdmin = createAdminClient();
-  const { data: authUser, error: authError } =
-    await supabaseAdmin.auth.admin.createUser({
-      email: portalUser.email as string,
-      password: temporaryPassword,
-      email_confirm: true, // Skip email confirmation
-      user_metadata: {
+  const { data: authData, error: authError } =
+    await supabaseAdmin.auth.admin.inviteUserByEmail(portalUser.email as string, {
+      data: {
         name: portalUser.name as string,
         role: portalUser.role as string,
         organisation_name: organisationName,
       },
+      redirectTo: process.env.NEXT_PUBLIC_APP_URL
+        ? `${process.env.NEXT_PUBLIC_APP_URL}/login`
+        : undefined,
     });
 
-  if (authError || !authUser.user) {
-    console.error("Failed to create auth user:", authError);
+  if (authError || !authData.user) {
+    console.error("Failed to invite user:", authError);
 
     // Check for specific error types
     if (authError?.message?.includes("already been registered")) {
       return {
         success: false,
-        error: "Email already registered in authentication system",
+        error: "Email already registered. The user may already have an account.",
         code: "EMAIL_EXISTS_IN_AUTH",
+      };
+    }
+
+    if (authError?.message?.includes("rate limit") || authError?.message?.includes("exceeded")) {
+      return {
+        success: false,
+        error: "Email rate limit reached. Supabase allows 4 invites per hour. Please try again later.",
+        code: "RATE_LIMITED",
       };
     }
 
     return {
       success: false,
-      error: "Failed to create login credentials",
-      code: "AUTH_CREATE_FAILED",
+      error: authError?.message || "Failed to send invite email",
+      code: "INVITE_FAILED",
     };
   }
 
-  // 10. Link auth_user_id and update status to 'invited'
+  // 9. Link auth_user_id and update status to 'invited'
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error: updateError } = await (supabase as any)
     .from("portal_users")
     .update({
-      auth_user_id: authUser.user.id,
+      auth_user_id: authData.user.id,
       status: "invited",
       invited_at: new Date().toISOString(),
       invited_by: invitedById,
@@ -160,36 +166,11 @@ export async function sendUserCredentials(
 
   if (updateError) {
     console.error("Failed to link auth user:", updateError);
-    // Auth user was created but linking failed - this is a partial success
-    // The admin can try again or manually fix
     return {
       success: false,
-      error: "Credentials created but failed to link to user profile",
+      error: "Invite sent but failed to update user profile. Please contact support.",
       code: "LINK_FAILED",
     };
-  }
-
-  // 11. Send credentials email
-  const loginUrl =
-    process.env.NEXT_PUBLIC_APP_URL
-      ? `${process.env.NEXT_PUBLIC_APP_URL}/login`
-      : "https://portal.timber-world.com/login";
-
-  const emailResult = await sendCredentialsEmail({
-    to: portalUser.email as string,
-    name: portalUser.name as string,
-    email: portalUser.email as string,
-    temporaryPassword,
-    loginUrl,
-  });
-
-  if (!emailResult.success) {
-    console.error("Failed to send credentials email:", emailResult.error);
-    // Don't fail the operation - credentials were created successfully
-    // Just log the error and return success
-    console.warn(
-      "Credentials created but email delivery failed. User can still log in with the generated credentials."
-    );
   }
 
   return {

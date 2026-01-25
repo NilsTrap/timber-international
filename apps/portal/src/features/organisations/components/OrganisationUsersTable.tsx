@@ -232,7 +232,7 @@ export function OrganisationUsersTable({ organisationId }: OrganisationUsersTabl
     const result = await sendUserCredentials(user.id, organisationId);
 
     if (result.success) {
-      toast.success(`Credentials sent to ${result.data.email}`);
+      toast.success(`Invite sent to ${result.data.email}. They will receive an email to set their password.`);
       loadUsers();
     } else {
       toast.error(result.error);
@@ -248,7 +248,7 @@ export function OrganisationUsersTable({ organisationId }: OrganisationUsersTabl
     const result = await resendUserCredentials(user.id, organisationId);
 
     if (result.success) {
-      toast.success(`New credentials sent to ${result.data.email}`);
+      toast.success(`New invite sent to ${result.data.email}`);
       loadUsers();
     } else {
       toast.error(result.error);
@@ -264,7 +264,7 @@ export function OrganisationUsersTable({ organisationId }: OrganisationUsersTabl
     const result = await resetUserPassword(user.id, organisationId);
 
     if (result.success) {
-      toast.success(`Password reset email sent to ${result.data.email}`);
+      toast.success(`Password reset link sent to ${result.data.email}`);
       loadUsers();
     } else {
       toast.error(result.error);

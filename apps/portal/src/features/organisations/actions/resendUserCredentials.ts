@@ -3,22 +3,23 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getSession, isSuperAdmin } from "@/lib/auth";
-import { generateTemporaryPassword } from "@/lib/utils/generatePassword";
-import { sendCredentialsEmail } from "@/lib/email/sendCredentialsEmail";
 import type { ActionResult } from "../types";
 import { isValidUUID } from "../types";
 
 /**
- * Resend User Credentials
+ * Resend User Credentials (Invite Flow)
  *
- * Resends login credentials for a portal user with status='invited' who already has auth_user_id:
+ * Resends an invite for a portal user with status='invited' who already has auth_user_id:
  * 1. Verify user is in 'invited' status and has auth_user_id
- * 2. Generate a new temporary password
- * 3. Update auth.users password via Admin API
- * 4. Send email with new credentials
- * 5. Update invited_at timestamp
+ * 2. Generate a new invite link via Supabase Auth
+ * 3. Supabase sends the email automatically
+ * 4. Update invited_at timestamp
+ *
+ * The user receives an email with a magic link to set their password.
  *
  * Super Admin only endpoint.
+ *
+ * Note: Supabase free tier has a limit of 4 emails/hour.
  */
 export async function resendUserCredentials(
   userId: string,
@@ -96,43 +97,38 @@ export async function resendUserCredentials(
     };
   }
 
-  // 6. Get organisation name for email
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: org } = await (supabase as any)
-    .from("organisations")
-    .select("name")
-    .eq("id", organisationId)
-    .single();
-
-  const organisationName = org?.name || "Timber World";
-
-  // 7. Generate new temporary password
-  const temporaryPassword = generateTemporaryPassword(12);
-
-  // 8. Update auth user password via Admin API
+  // 6. Generate a new invite link via Supabase Auth Admin API
+  // This sends the invite email automatically
   const supabaseAdmin = createAdminClient();
-  const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(
-    portalUser.auth_user_id as string,
-    {
-      password: temporaryPassword,
-      user_metadata: {
-        name: portalUser.name as string,
-        role: portalUser.role as string,
-        organisation_name: organisationName,
-      },
-    }
-  );
+  const { error: inviteError } = await supabaseAdmin.auth.admin.generateLink({
+    type: "invite",
+    email: portalUser.email as string,
+    options: {
+      redirectTo: process.env.NEXT_PUBLIC_APP_URL
+        ? `${process.env.NEXT_PUBLIC_APP_URL}/login`
+        : undefined,
+    },
+  });
 
-  if (authError) {
-    console.error("Failed to update auth user password:", authError);
+  if (inviteError) {
+    console.error("Failed to resend invite:", inviteError);
+
+    if (inviteError.message?.includes("rate limit") || inviteError.message?.includes("exceeded")) {
+      return {
+        success: false,
+        error: "Email rate limit reached. Supabase allows 4 invites per hour. Please try again later.",
+        code: "RATE_LIMITED",
+      };
+    }
+
     return {
       success: false,
-      error: "Failed to reset password",
-      code: "AUTH_UPDATE_FAILED",
+      error: inviteError.message || "Failed to resend invite email",
+      code: "INVITE_FAILED",
     };
   }
 
-  // 9. Update invited_at timestamp in portal_users
+  // 7. Update invited_at timestamp in portal_users
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error: updateError } = await (supabase as any)
     .from("portal_users")
@@ -144,30 +140,7 @@ export async function resendUserCredentials(
 
   if (updateError) {
     console.error("Failed to update invited_at:", updateError);
-    // Password was reset but timestamp update failed - this is not critical
-    // Continue with sending the email
-  }
-
-  // 10. Send credentials email
-  const loginUrl =
-    process.env.NEXT_PUBLIC_APP_URL
-      ? `${process.env.NEXT_PUBLIC_APP_URL}/login`
-      : "https://portal.timber-world.com/login";
-
-  const emailResult = await sendCredentialsEmail({
-    to: portalUser.email as string,
-    name: portalUser.name as string,
-    email: portalUser.email as string,
-    temporaryPassword,
-    loginUrl,
-  });
-
-  if (!emailResult.success) {
-    console.error("Failed to send credentials email:", emailResult.error);
-    // Don't fail the operation - credentials were reset successfully
-    console.warn(
-      "Credentials resent but email delivery failed. User can still log in with the new password."
-    );
+    // Invite was sent but timestamp update failed - this is not critical
   }
 
   return {
