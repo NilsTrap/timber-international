@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { getSession, isProducer } from "@/lib/auth";
+import { getSession, isProducer, isSuperAdmin } from "@/lib/auth";
 import type { ActionResult, ReferenceDropdowns, ReferenceOption } from "../types";
 
 const REFERENCE_TABLES = [
@@ -18,7 +18,7 @@ const REFERENCE_TABLES = [
  * Get Reference Dropdowns for Producer
  *
  * Fetches all 7 reference table active options for the production output form.
- * Producer access (not admin-only like the shipments version).
+ * Accessible by producers and Super Admin.
  */
 export async function getReferenceDropdownsForProducer(): Promise<ActionResult<ReferenceDropdowns>> {
   const session = await getSession();
@@ -26,7 +26,8 @@ export async function getReferenceDropdownsForProducer(): Promise<ActionResult<R
     return { success: false, error: "Not authenticated", code: "UNAUTHENTICATED" };
   }
 
-  if (!isProducer(session)) {
+  // Allow producers and Super Admin
+  if (!isProducer(session) && !isSuperAdmin(session)) {
     return { success: false, error: "Permission denied", code: "FORBIDDEN" };
   }
 
