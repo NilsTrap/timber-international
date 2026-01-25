@@ -4,66 +4,60 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSession, isAdmin } from "@/lib/auth";
 import { AccessDeniedHandler } from "@/components/AccessDeniedHandler";
-import { getProducerMetrics, getProcessBreakdown } from "@/features/dashboard/actions";
+import {
+  getProducerMetrics,
+  getProcessBreakdown,
+  getAdminMetrics,
+  getAdminProcessBreakdown,
+} from "@/features/dashboard/actions";
 import { ProducerDashboardMetrics } from "@/features/dashboard/components/ProducerDashboardMetrics";
 import { ProcessBreakdownTable } from "@/features/dashboard/components/ProcessBreakdownTable";
+import { AdminDashboardContent } from "@/features/dashboard/components/AdminDashboardContent";
 
 export const metadata: Metadata = {
   title: "Dashboard",
 };
 
 /**
- * Admin Dashboard Content
- * TODO [i18n]: Replace hardcoded text with useTranslations()
+ * Admin Dashboard Loader (Server Component)
+ *
+ * Fetches admin metrics server-side and passes to client component.
  */
-function AdminDashboardContent() {
-  return (
-    <>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <div className="rounded-lg border bg-card p-6 shadow-sm">
-          <h3 className="text-sm font-medium text-muted-foreground">
-            Total Inventory
-          </h3>
-          <p className="mt-2 text-2xl font-semibold">--</p>
-          <p className="text-xs text-muted-foreground">Cubic meters across all facilities</p>
-        </div>
+async function AdminDashboardLoader() {
+  try {
+    const [metricsResult, breakdownResult] = await Promise.all([
+      getAdminMetrics(),
+      getAdminProcessBreakdown(),
+    ]);
 
-        <div className="rounded-lg border bg-card p-6 shadow-sm">
-          <h3 className="text-sm font-medium text-muted-foreground">
-            Total Products
-          </h3>
-          <p className="mt-2 text-2xl font-semibold">--</p>
-          <p className="text-xs text-muted-foreground">In catalog</p>
-        </div>
+    const hasError = !metricsResult.success || !breakdownResult.success;
+    if (hasError) {
+      console.error("[AdminDashboard] Failed to load metrics:", {
+        metricsError: !metricsResult.success ? metricsResult.error : null,
+        breakdownError: !breakdownResult.success ? breakdownResult.error : null,
+      });
+    }
 
-        <div className="rounded-lg border bg-card p-6 shadow-sm">
-          <h3 className="text-sm font-medium text-muted-foreground">
-            Producer Efficiency
-          </h3>
-          <p className="mt-2 text-2xl font-semibold">--%</p>
-          <p className="text-xs text-muted-foreground">Average outcome rate</p>
-        </div>
-      </div>
+    const metrics = metricsResult.success ? metricsResult.data : null;
+    const breakdown = breakdownResult.success ? breakdownResult.data : [];
 
-      <div className="rounded-lg border bg-card p-6 shadow-sm">
-        <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="rounded-md border p-4 text-center text-muted-foreground">
-            Add Product
-          </div>
-          <div className="rounded-md border p-4 text-center text-muted-foreground">
-            Record Inventory
-          </div>
-          <div className="rounded-md border p-4 text-center text-muted-foreground">
-            View Reports
-          </div>
-        </div>
-        <p className="mt-4 text-sm text-muted-foreground text-center">
-          Features coming in Epic 2 & 5
-        </p>
-      </div>
-    </>
-  );
+    return (
+      <AdminDashboardContent
+        initialMetrics={metrics}
+        initialBreakdown={breakdown}
+        hasError={hasError}
+      />
+    );
+  } catch (err) {
+    console.error("[AdminDashboard] Unexpected error fetching data:", err);
+    return (
+      <AdminDashboardContent
+        initialMetrics={null}
+        initialBreakdown={[]}
+        hasError={true}
+      />
+    );
+  }
 }
 
 /**
@@ -178,7 +172,7 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      {userIsAdmin ? <AdminDashboardContent /> : <ProducerDashboardContent />}
+      {userIsAdmin ? <AdminDashboardLoader /> : <ProducerDashboardContent />}
     </div>
   );
 }
