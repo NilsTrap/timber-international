@@ -30,3 +30,19 @@ export function formatDateTime(dateStr: string): string {
   const minutes = String(date.getMinutes()).padStart(2, "0");
   return `${day}.${month}.${year} ${hours}:${minutes}`;
 }
+
+/**
+ * Format number with comma decimal separator, 3 decimal places (European format)
+ * Example: 1.234 → "1,234"
+ */
+export function formatVolume(n: number): string {
+  return n.toFixed(3).replace(".", ",");
+}
+
+/**
+ * Format number with comma decimal separator, 1 decimal place (European format)
+ * Example: 85.5 → "85,5"
+ */
+export function formatPercent(n: number): string {
+  return n.toFixed(1).replace(".", ",");
+}

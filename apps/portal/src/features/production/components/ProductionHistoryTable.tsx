@@ -10,6 +10,7 @@ import type { ProductionHistoryItem } from "../types";
 
 interface ProductionHistoryTableProps {
   entries: ProductionHistoryItem[];
+  defaultProcess?: string;
 }
 
 /** Format number with comma decimal separator */
@@ -43,10 +44,13 @@ function parseEuropeanDate(value: string): string {
 
 export function ProductionHistoryTable({
   entries,
+  defaultProcess,
 }: ProductionHistoryTableProps) {
   const router = useRouter();
   const [sortState, setSortState] = useState<ColumnSortState | null>(null);
-  const [filterState, setFilterState] = useState<Record<string, Set<string>>>({});
+  const [filterState, setFilterState] = useState<Record<string, Set<string>>>(
+    defaultProcess ? { processName: new Set([defaultProcess]) } : {}
+  );
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const dateFromRef = useRef<HTMLInputElement>(null);

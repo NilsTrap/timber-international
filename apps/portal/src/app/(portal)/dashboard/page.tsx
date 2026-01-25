@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getSession, isAdmin } from "@/lib/auth";
 import { AccessDeniedHandler } from "@/components/AccessDeniedHandler";
+import { getProducerMetrics, getProcessBreakdown } from "@/features/dashboard/actions";
+import { ProducerDashboardMetrics } from "@/features/dashboard/components/ProducerDashboardMetrics";
+import { ProcessBreakdownTable } from "@/features/dashboard/components/ProcessBreakdownTable";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -64,64 +68,77 @@ function AdminDashboardContent() {
 
 /**
  * Producer Dashboard Content
+ *
+ * Fetches real metrics and process breakdown data.
+ * Shows metric cards, per-process table, and quick action links.
  * TODO [i18n]: Replace hardcoded text with useTranslations()
  */
-function ProducerDashboardContent() {
+async function ProducerDashboardContent() {
+  const [metricsResult, breakdownResult] = await Promise.all([
+    getProducerMetrics(),
+    getProcessBreakdown(),
+  ]);
+
+  // Handle errors - show user-friendly message instead of silently failing
+  const hasError = !metricsResult.success || !breakdownResult.success;
+  if (hasError) {
+    console.error("[Dashboard] Failed to load metrics:", {
+      metricsError: !metricsResult.success ? metricsResult.error : null,
+      breakdownError: !breakdownResult.success ? breakdownResult.error : null,
+    });
+  }
+
+  const metrics = metricsResult.success ? metricsResult.data : null;
+  const breakdown = breakdownResult.success ? breakdownResult.data : [];
+  const hasProduction = metrics && metrics.totalProductionVolumeM3 > 0;
+
+  // Show error state if data failed to load
+  if (hasError) {
+    return (
+      <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-6 shadow-sm text-center">
+        <p className="text-destructive font-medium">
+          Failed to load dashboard metrics. Please try refreshing the page.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-lg border bg-card p-6 shadow-sm">
-          <h3 className="text-sm font-medium text-muted-foreground">
-            Total Inventory
-          </h3>
-          <p className="mt-2 text-2xl font-semibold">--</p>
-          <p className="text-xs text-muted-foreground">Cubic meters</p>
-        </div>
+      <ProducerDashboardMetrics metrics={metrics} />
 
-        <div className="rounded-lg border bg-card p-6 shadow-sm">
-          <h3 className="text-sm font-medium text-muted-foreground">
-            Production Volume
-          </h3>
-          <p className="mt-2 text-2xl font-semibold">--</p>
-          <p className="text-xs text-muted-foreground">This month</p>
+      {hasProduction ? (
+        <ProcessBreakdownTable breakdown={breakdown} />
+      ) : (
+        <div className="rounded-lg border bg-card p-6 shadow-sm text-center">
+          <p className="text-muted-foreground">
+            Start tracking production to see metrics
+          </p>
         </div>
-
-        <div className="rounded-lg border bg-card p-6 shadow-sm">
-          <h3 className="text-sm font-medium text-muted-foreground">
-            Outcome Rate
-          </h3>
-          <p className="mt-2 text-2xl font-semibold">--%</p>
-          <p className="text-xs text-muted-foreground">Average efficiency</p>
-        </div>
-
-        <div className="rounded-lg border bg-card p-6 shadow-sm">
-          <h3 className="text-sm font-medium text-muted-foreground">
-            Waste Rate
-          </h3>
-          <p className="mt-2 text-2xl font-semibold">--%</p>
-          <p className="text-xs text-muted-foreground">Average loss</p>
-        </div>
-      </div>
+      )}
 
       <div className="rounded-lg border bg-card p-6 shadow-sm">
         <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-md border p-4 text-center text-muted-foreground">
-            New Production Entry
-          </div>
-          <div className="rounded-md border p-4 text-center text-muted-foreground">
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <Link
+            href="/production"
+            className="rounded-md border p-4 text-center hover:bg-accent/50 transition-colors"
+          >
+            New Production
+          </Link>
+          <Link
+            href="/inventory"
+            className="rounded-md border p-4 text-center hover:bg-accent/50 transition-colors"
+          >
             View Inventory
-          </div>
-          <div className="rounded-md border p-4 text-center text-muted-foreground">
+          </Link>
+          <Link
+            href="/production?tab=history"
+            className="rounded-md border p-4 text-center hover:bg-accent/50 transition-colors"
+          >
             Production History
-          </div>
-          <div className="rounded-md border p-4 text-center text-muted-foreground">
-            Efficiency Reports
-          </div>
+          </Link>
         </div>
-        <p className="mt-4 text-sm text-muted-foreground text-center">
-          Features coming in Epic 3-5
-        </p>
       </div>
     </>
   );
@@ -162,10 +179,6 @@ export default async function DashboardPage() {
       </div>
 
       {userIsAdmin ? <AdminDashboardContent /> : <ProducerDashboardContent />}
-
-      <p className="text-center text-xs text-muted-foreground">
-        Portal Foundation - Story 1.4 Complete
-      </p>
     </div>
   );
 }

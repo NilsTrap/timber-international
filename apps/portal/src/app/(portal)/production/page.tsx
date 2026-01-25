@@ -23,9 +23,9 @@ export const metadata: Metadata = {
 export default async function ProductionPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; process?: string }>;
 }) {
-  const { tab } = await searchParams;
+  const { tab, process } = await searchParams;
   const session = await getSession();
 
   if (!session) {
@@ -56,6 +56,7 @@ export default async function ProductionPage({
         drafts={drafts}
         history={history}
         defaultTab={tab}
+        defaultProcess={process}
       />
     </div>
   );
