@@ -36,8 +36,16 @@ export async function getShipmentDetail(
       to_organisation_id,
       shipment_date,
       transport_cost_eur,
+      notes,
+      status,
+      submitted_at,
+      reviewed_at,
+      reviewed_by,
+      rejection_reason,
+      completed_at,
       from_organisation:organisations!shipments_from_party_id_fkey(code, name),
-      to_organisation:organisations!shipments_to_party_id_fkey(code, name)
+      to_organisation:organisations!shipments_to_party_id_fkey(code, name),
+      reviewer:portal_users!shipments_reviewed_by_fkey(name)
     `)
     .eq("id", shipmentId)
     .single();
@@ -124,6 +132,15 @@ export async function getShipmentDetail(
     toOrganisationName: `${shipment.to_organisation?.code ?? ""} - ${shipment.to_organisation?.name ?? ""}`,
     shipmentDate: shipment.shipment_date,
     transportCostEur: shipment.transport_cost_eur != null ? Number(shipment.transport_cost_eur) : null,
+    notes: shipment.notes ?? null,
+    // Status workflow fields
+    status: shipment.status ?? 'completed',
+    submittedAt: shipment.submitted_at ?? null,
+    reviewedAt: shipment.reviewed_at ?? null,
+    reviewedBy: shipment.reviewed_by ?? null,
+    reviewedByName: shipment.reviewer?.name ?? null,
+    rejectionReason: shipment.rejection_reason ?? null,
+    completedAt: shipment.completed_at ?? null,
     packages: packageDetails,
   };
 

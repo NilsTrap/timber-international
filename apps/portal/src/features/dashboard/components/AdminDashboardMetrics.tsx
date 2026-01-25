@@ -54,19 +54,36 @@ export function AdminDashboardMetrics({ metrics }: AdminDashboardMetricsProps) {
           : "--",
       subtitle: "Weighted average",
     },
+    {
+      title: "Active Organizations",
+      value: metrics?.activeOrganizations?.toString() ?? "0",
+      subtitle: "Activity in last 30 days",
+    },
+    {
+      title: "Pending Shipments",
+      value: metrics?.pendingShipments?.toString() ?? "0",
+      subtitle: "Awaiting acceptance",
+      highlight: metrics?.pendingShipments && metrics.pendingShipments > 0,
+    },
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {cards.map((card) => (
         <div
           key={card.title}
-          className="rounded-lg border bg-card p-6 shadow-sm"
+          className={`rounded-lg border p-6 shadow-sm ${
+            card.highlight
+              ? "bg-yellow-50 border-yellow-200"
+              : "bg-card"
+          }`}
         >
           <h3 className="text-sm font-medium text-muted-foreground">
             {card.title}
           </h3>
-          <p className="mt-2 text-2xl font-semibold tabular-nums">
+          <p className={`mt-2 text-2xl font-semibold tabular-nums ${
+            card.highlight ? "text-yellow-700" : ""
+          }`}>
             {card.value}
           </p>
           <p className="text-xs text-muted-foreground">{card.subtitle}</p>

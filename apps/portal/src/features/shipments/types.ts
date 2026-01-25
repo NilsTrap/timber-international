@@ -1,3 +1,6 @@
+/** Shipment status workflow states */
+export type ShipmentStatus = 'draft' | 'pending' | 'accepted' | 'completed' | 'rejected';
+
 /** Shipment record from database */
 export interface Shipment {
   id: string;
@@ -7,6 +10,13 @@ export interface Shipment {
   toOrganisationId: string;
   shipmentDate: string;
   notes: string | null;
+  // Status workflow fields (Story 8.1)
+  status: ShipmentStatus;
+  submittedAt: string | null;
+  reviewedAt: string | null;
+  reviewedBy: string | null;
+  rejectionReason: string | null;
+  completedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -89,14 +99,23 @@ export type ActionResult<T> =
 export interface ShipmentListItem {
   id: string;
   shipmentCode: string;
+  fromOrganisationId: string;
   fromOrganisationName: string;
   fromOrganisationCode: string;
+  toOrganisationId: string;
   toOrganisationName: string;
   toOrganisationCode: string;
   shipmentDate: string;
   transportCostEur: number | null;
   packageCount: number;
   totalVolumeM3: number;
+  // Status workflow fields (Story 8.1)
+  status: ShipmentStatus;
+  submittedAt: string | null;
+  reviewedAt: string | null;
+  reviewedByName: string | null;
+  rejectionReason: string | null;
+  completedAt: string | null;
 }
 
 /** Package detail for shipment detail view */
@@ -137,6 +156,15 @@ export interface ShipmentDetail {
   toOrganisationName: string;
   shipmentDate: string;
   transportCostEur: number | null;
+  notes: string | null;
+  // Status workflow fields (Story 8.1)
+  status: ShipmentStatus;
+  submittedAt: string | null;
+  reviewedAt: string | null;
+  reviewedBy: string | null;
+  reviewedByName: string | null;
+  rejectionReason: string | null;
+  completedAt: string | null;
   packages: PackageDetail[];
 }
 

@@ -1,6 +1,7 @@
 import { getSession, isSuperAdmin, type UserRole } from "@/lib/auth";
 import { Sidebar, type NavItem } from "./Sidebar";
 import { getActiveOrganisations } from "@/features/shipments/actions/getActiveOrganisations";
+import { getPendingShipmentCount } from "@/features/shipments/actions/getOrgShipments";
 import type { OrganizationOption } from "./OrganizationSelector";
 
 /**
@@ -16,19 +17,23 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
 ];
 
 /**
- * Navigation items for Producer users
+ * Navigation items for Producer users (Organization Users)
+ * @param pendingShipmentCount - Number of pending incoming shipments for badge
  */
-const PRODUCER_NAV_ITEMS: NavItem[] = [
-  { href: "/dashboard", label: "Dashboard", iconName: "LayoutDashboard" },
-  { href: "/inventory", label: "Inventory", iconName: "Package" },
-  { href: "/production", label: "Production", iconName: "Factory" },
-];
+function getProducerNavItems(pendingShipmentCount: number = 0): NavItem[] {
+  return [
+    { href: "/dashboard", label: "Dashboard", iconName: "LayoutDashboard" },
+    { href: "/inventory", label: "Inventory", iconName: "Package" },
+    { href: "/shipments", label: "Shipments", iconName: "Truck", badge: pendingShipmentCount },
+    { href: "/production", label: "Production", iconName: "Factory" },
+  ];
+}
 
 /**
  * Get navigation items based on user role
  */
-function getNavItems(role: UserRole): NavItem[] {
-  return role === "admin" ? ADMIN_NAV_ITEMS : PRODUCER_NAV_ITEMS;
+function getNavItems(role: UserRole, pendingShipmentCount: number = 0): NavItem[] {
+  return role === "admin" ? ADMIN_NAV_ITEMS : getProducerNavItems(pendingShipmentCount);
 }
 
 /**
@@ -39,11 +44,22 @@ function getNavItems(role: UserRole): NavItem[] {
  */
 export async function SidebarWrapper() {
   const session = await getSession();
-  const navItems = getNavItems(session?.role || "producer");
+
   // Super Admin (null org) → "Timber World Platform"
   // Organisation User → their org name
   // Fallback (legacy/unlinked) → "Timber World Platform"
   const brandName = session?.organisationName || "Timber World Platform";
+
+  // Fetch pending shipment count for producer users
+  let pendingShipmentCount = 0;
+  if (session?.role === "producer" && session.organisationId) {
+    const countResult = await getPendingShipmentCount();
+    if (countResult.success) {
+      pendingShipmentCount = countResult.data;
+    }
+  }
+
+  const navItems = getNavItems(session?.role || "producer", pendingShipmentCount);
 
   // Fetch organizations for Super Admin org selector
   let organizations: OrganizationOption[] | undefined;

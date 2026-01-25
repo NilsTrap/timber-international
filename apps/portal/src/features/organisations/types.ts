@@ -14,6 +14,37 @@ export interface Organisation {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  /** Number of portal users in this organisation */
+  userCount?: number;
+}
+
+/**
+ * User status in the invitation lifecycle
+ * - created: User record exists but no credentials sent yet
+ * - invited: Credentials have been sent, user can log in
+ * - active: User has logged in at least once
+ */
+export type UserStatus = "created" | "invited" | "active";
+
+/**
+ * Organisation User as stored in portal_users
+ */
+export interface OrganisationUser {
+  id: string;
+  email: string;
+  name: string;
+  role: "admin" | "producer";
+  organisationId: string;
+  authUserId: string | null;
+  isActive: boolean;
+  status: UserStatus;
+  invitedAt: string | null;
+  invitedBy: string | null;
+  /** Name of the user who sent the invitation/credentials */
+  invitedByName: string | null;
+  lastLoginAt: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 /**

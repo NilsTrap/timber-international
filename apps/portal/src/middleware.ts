@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 /**
  * Admin-only routes that require admin role
  */
-const ADMIN_ONLY_ROUTES = ["/products"];
+const ADMIN_ONLY_ROUTES = ["/products", "/admin"];
 
 /**
  * Check if a route requires admin role

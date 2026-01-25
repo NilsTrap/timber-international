@@ -44,6 +44,10 @@ export interface AdminMetrics {
   overallOutcomePercent: number;
   overallWastePercent: number;
   entryCount: number;
+  /** Count of organizations with activity in last 30 days */
+  activeOrganizations: number;
+  /** Count of pending shipments awaiting acceptance */
+  pendingShipments: number;
 }
 
 /** Trend direction indicator */

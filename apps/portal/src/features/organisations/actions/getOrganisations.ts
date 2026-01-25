@@ -7,7 +7,7 @@ import type { Organisation, ActionResult } from "../types";
 /**
  * Get Organisations
  *
- * Fetches all organisations, sorted by code.
+ * Fetches all organisations with user count, sorted by code.
  * Admin only endpoint.
  *
  * @param options.includeInactive - If true, includes inactive organisations. Default: false
@@ -36,14 +36,21 @@ export async function getOrganisations(
 
   const supabase = await createClient();
 
-  // 3. Fetch organisations from organisations table
+  // 3. Fetch organisations with user count using LEFT JOIN
+  // We use a raw query to get aggregated user counts per organisation
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let query = (supabase as any)
-    .from("organisations")
-    .select("id, code, name, is_active, created_at, updated_at");
+  const client = supabase as any;
 
-  // Filter to active-only unless includeInactive is true
-  if (!options?.includeInactive) {
+  // Build the active filter for the RPC or query
+  const includeInactive = options?.includeInactive ?? false;
+
+  // Use Supabase's ability to select with counts via foreign key relations
+  // portal_users has organisation_id that references organisations.id
+  let query = client
+    .from("organisations")
+    .select("id, code, name, is_active, created_at, updated_at, portal_users(count)");
+
+  if (!includeInactive) {
     query = query.eq("is_active", true);
   }
 
@@ -58,7 +65,7 @@ export async function getOrganisations(
     };
   }
 
-  // 4. Transform snake_case to camelCase
+  // 4. Transform snake_case to camelCase and extract user count
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const organisations: Organisation[] = (data || []).map((row: any) => ({
     id: row.id as string,
@@ -67,6 +74,8 @@ export async function getOrganisations(
     isActive: row.is_active as boolean,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
+    // Supabase returns count as [{ count: number }] for aggregated relations
+    userCount: row.portal_users?.[0]?.count ?? 0,
   }));
 
   return {

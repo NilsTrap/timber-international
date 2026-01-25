@@ -137,6 +137,35 @@ export async function getAdminMetrics(
   const overallOutcomePercent = totalInputM3 > 0 ? (totalOutputM3 / totalInputM3) * 100 : 0;
   const overallWastePercent = totalInputM3 > 0 ? 100 - overallOutcomePercent : 0;
 
+  // Fetch active organizations count (activity in last 30 days)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const { data: activeOrgsData } = await (supabase as any)
+    .from("portal_production_entries")
+    .select("organisation_id")
+    .eq("status", "validated")
+    .gte("validated_at", thirtyDaysAgo);
+
+  const activeOrgIds = new Set<string>();
+  if (activeOrgsData) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    for (const entry of activeOrgsData as any[]) {
+      if (entry.organisation_id) {
+        activeOrgIds.add(entry.organisation_id);
+      }
+    }
+  }
+  const activeOrganizations = activeOrgIds.size;
+
+  // Fetch pending shipments count
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { count: pendingCount } = await (supabase as any)
+    .from("shipments")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "pending");
+
+  const pendingShipments = pendingCount ?? 0;
+
   return {
     success: true,
     data: {
@@ -146,6 +175,8 @@ export async function getAdminMetrics(
       overallOutcomePercent,
       overallWastePercent,
       entryCount,
+      activeOrganizations,
+      pendingShipments,
     },
   };
 }

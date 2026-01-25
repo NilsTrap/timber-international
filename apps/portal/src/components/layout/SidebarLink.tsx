@@ -38,6 +38,8 @@ interface SidebarLinkProps {
   label: string;
   iconName: IconName;
   isCollapsed: boolean;
+  /** Optional badge count to display */
+  badge?: number;
 }
 
 /**
@@ -46,7 +48,7 @@ interface SidebarLinkProps {
  * Displays an icon (always) and label (when expanded).
  * Highlights when the current route matches.
  */
-export function SidebarLink({ href, label, iconName, isCollapsed }: SidebarLinkProps) {
+export function SidebarLink({ href, label, iconName, isCollapsed, badge }: SidebarLinkProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const isActive = pathname === href || pathname.startsWith(`${href}/`);
@@ -63,7 +65,7 @@ export function SidebarLink({ href, label, iconName, isCollapsed }: SidebarLinkP
       aria-current={isActive ? "page" : undefined}
       title={isCollapsed ? label : undefined}
       className={cn(
-        "flex items-center rounded-md px-3 py-2 text-sm transition-colors",
+        "flex items-center rounded-md px-3 py-2 text-sm transition-colors relative",
         isCollapsed ? "justify-center" : "gap-3",
         isActive
           ? "bg-primary/10 text-primary font-medium"
@@ -71,7 +73,19 @@ export function SidebarLink({ href, label, iconName, isCollapsed }: SidebarLinkP
       )}
     >
       <Icon className="h-5 w-5 shrink-0" />
-      {!isCollapsed && <span>{label}</span>}
+      {!isCollapsed && <span className="flex-1">{label}</span>}
+      {badge !== undefined && badge > 0 && (
+        <span
+          className={cn(
+            "inline-flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-xs font-medium",
+            isCollapsed
+              ? "absolute -top-1 -right-1 h-4 min-w-[16px] px-1"
+              : "h-5 min-w-[20px] px-1.5"
+          )}
+        >
+          {badge > 99 ? "99+" : badge}
+        </span>
+      )}
     </Link>
   );
 }

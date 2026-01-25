@@ -40,9 +40,17 @@ export async function getShipments(orgId?: string): Promise<ActionResult<Shipmen
       shipment_code,
       shipment_date,
       transport_cost_eur,
+      from_organisation_id,
       from_organisation:organisations!shipments_from_party_id_fkey(code, name),
-      to_organisation:organisations!shipments_to_party_id_fkey(code, name),
       to_organisation_id,
+      to_organisation:organisations!shipments_to_party_id_fkey(code, name),
+      status,
+      submitted_at,
+      reviewed_at,
+      reviewed_by,
+      rejection_reason,
+      completed_at,
+      reviewer:portal_users!shipments_reviewed_by_fkey(name),
       inventory_packages(volume_m3)
     `)
     .order("shipment_date", { ascending: false });
@@ -63,8 +71,10 @@ export async function getShipments(orgId?: string): Promise<ActionResult<Shipmen
   const shipments: ShipmentListItem[] = (data as any[]).map((row: any) => ({
     id: row.id,
     shipmentCode: row.shipment_code,
+    fromOrganisationId: row.from_organisation_id,
     fromOrganisationName: row.from_organisation?.name ?? "",
     fromOrganisationCode: row.from_organisation?.code ?? "",
+    toOrganisationId: row.to_organisation_id,
     toOrganisationName: row.to_organisation?.name ?? "",
     toOrganisationCode: row.to_organisation?.code ?? "",
     shipmentDate: row.shipment_date,
@@ -75,6 +85,13 @@ export async function getShipments(orgId?: string): Promise<ActionResult<Shipmen
       (sum: number, pkg: any) => sum + (pkg.volume_m3 != null ? Number(pkg.volume_m3) : 0),
       0
     ),
+    // Status workflow fields
+    status: row.status ?? 'completed',
+    submittedAt: row.submitted_at ?? null,
+    reviewedAt: row.reviewed_at ?? null,
+    reviewedByName: row.reviewer?.name ?? null,
+    rejectionReason: row.rejection_reason ?? null,
+    completedAt: row.completed_at ?? null,
   }));
 
   return { success: true, data: shipments };

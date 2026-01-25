@@ -17,6 +17,8 @@ export interface NavItem {
   href: string;
   label: string;
   iconName: IconName;
+  /** Optional badge count to display */
+  badge?: number;
 }
 
 interface SidebarProps {
@@ -112,6 +114,7 @@ export function Sidebar({ navItems, brandName, organizations }: SidebarProps) {
                 label={item.label}
                 iconName={item.iconName}
                 isCollapsed={isCollapsed}
+                badge={item.badge}
               />
             </li>
           ))}

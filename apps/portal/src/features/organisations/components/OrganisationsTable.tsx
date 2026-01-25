@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   ArrowUp,
@@ -12,6 +13,7 @@ import {
   Plus,
   Trash2,
   Loader2,
+  Users,
 } from "lucide-react";
 import {
   Button,
@@ -40,7 +42,7 @@ import {
 import type { Organisation } from "../types";
 import { OrganisationForm } from "./OrganisationForm";
 
-type SortColumn = "code" | "name" | "isActive";
+type SortColumn = "code" | "name" | "userCount" | "isActive";
 type SortDirection = "asc" | "desc";
 
 /**
@@ -74,6 +76,7 @@ function SortIndicator({
  * Displays all organisations with sortable columns, CRUD actions, and delete.
  */
 export function OrganisationsTable() {
+  const router = useRouter();
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -121,6 +124,9 @@ export function OrganisationsTable() {
           break;
         case "name":
           comparison = a.name.localeCompare(b.name);
+          break;
+        case "userCount":
+          comparison = (a.userCount ?? 0) - (b.userCount ?? 0);
           break;
         case "isActive":
           // Active items first when ascending
@@ -288,6 +294,17 @@ export function OrganisationsTable() {
                 </TableHead>
                 <TableHead className="w-28">
                   <button
+                    onClick={() => handleSort("userCount")}
+                    className="flex items-center font-medium hover:text-foreground transition-colors"
+                    aria-label="Sort by user count"
+                  >
+                    <Users className="h-4 w-4 mr-1" />
+                    Users
+                    <SortIndicator column="userCount" sortColumn={sortColumn} sortDirection={sortDirection} />
+                  </button>
+                </TableHead>
+                <TableHead className="w-28">
+                  <button
                     onClick={() => handleSort("isActive")}
                     className="flex items-center font-medium hover:text-foreground transition-colors"
                     aria-label="Sort by status"
@@ -303,19 +320,23 @@ export function OrganisationsTable() {
               {sortedOrganisations.map((org) => (
                 <TableRow
                   key={org.id}
-                  className={!org.isActive ? "opacity-50" : ""}
+                  className={`cursor-pointer hover:bg-accent/50 transition-colors ${!org.isActive ? "opacity-50" : ""}`}
+                  onClick={() => router.push(`/admin/organisations/${org.id}`)}
                 >
                   <TableCell className="font-mono font-medium">
                     {org.code}
                   </TableCell>
                   <TableCell>{org.name}</TableCell>
+                  <TableCell className="text-center">
+                    {org.userCount ?? 0}
+                  </TableCell>
                   <TableCell>
                     <Badge variant={org.isActive ? "success" : "secondary"}>
                       {org.isActive ? "Active" : "Inactive"}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-1">
+                    <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
                       <Button
                         variant="ghost"
                         size="icon-sm"

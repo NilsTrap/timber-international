@@ -49,7 +49,51 @@ export async function loginUser(
     return { success: false, error: "Login failed", code: "LOGIN_FAILED" };
   }
 
-  // 3. Return redirect path
+  // 3. Check portal_users record and verify user is active
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: portalUser } = await (supabase as any)
+    .from("portal_users")
+    .select("id, status, is_active")
+    .eq("auth_user_id", data.user.id)
+    .single();
+
+  // 4. Block deactivated users
+  if (portalUser && portalUser.is_active === false) {
+    // Sign out the user since they successfully authenticated but are deactivated
+    await supabase.auth.signOut();
+    return {
+      success: false,
+      error: "Your account has been deactivated. Please contact your administrator.",
+      code: "ACCOUNT_DEACTIVATED",
+    };
+  }
+
+  // 5. Handle first login - update status from 'invited' to 'active'
+  // This happens when a user logs in for the first time after receiving credentials
+  if (portalUser && portalUser.status === "invited") {
+    // Update status to 'active' and record last login timestamp
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any)
+      .from("portal_users")
+      .update({
+        status: "active",
+        last_login_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", portalUser.id);
+  } else if (portalUser) {
+    // Just update last_login_at for returning users
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any)
+      .from("portal_users")
+      .update({
+        last_login_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", portalUser.id);
+  }
+
+  // 6. Return redirect path
   // Note: Both roles redirect to /dashboard - role-specific UI handled in Story 1.4
   return {
     success: true,
