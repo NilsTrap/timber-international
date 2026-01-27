@@ -27,6 +27,8 @@ interface OutputRowInput {
 interface SaveResult {
   /** Map of clientIndex → new dbId for inserted rows */
   insertedIds: Record<number, string>;
+  /** Map of clientIndex → generated package number for inserted rows */
+  packageNumbers: Record<number, string>;
 }
 
 /**
@@ -58,11 +60,11 @@ export async function saveProductionOutputs(
 
   const supabase = await createClient();
 
-  // Verify production entry ownership
+  // Verify production entry ownership and get org/process info for package numbering
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: entry, error: entryError } = await (supabase as any)
     .from("portal_production_entries")
-    .select("id, created_by")
+    .select("id, created_by, organisation_id, process_id, ref_processes!inner(code)")
     .eq("id", productionEntryId)
     .single();
 
@@ -72,6 +74,9 @@ export async function saveProductionOutputs(
   if (entry.created_by !== session.id) {
     return { success: false, error: "Permission denied", code: "FORBIDDEN" };
   }
+
+  const organisationId = entry.organisation_id;
+  const processCode = entry.ref_processes?.code;
 
   // Fetch existing DB rows with full data for diff comparison
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -103,6 +108,7 @@ export async function saveProductionOutputs(
   }
 
   const insertedIds: Record<number, string> = {};
+  const packageNumbers: Record<number, string> = {};
 
   // Helper to build DB row payload
   function toDbRow(row: OutputRowInput) {
@@ -159,22 +165,48 @@ export async function saveProductionOutputs(
     }
   }
 
-  // BATCH INSERT
+  // INSERT new rows with auto-generated package numbers
   if (toInsert.length > 0) {
+    // Generate package numbers for each new row
+    const generatedNumbers: string[] = [];
+    for (let i = 0; i < toInsert.length; i++) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: pkgNumResult, error: pkgNumError } = await (supabase as any)
+        .rpc("generate_production_package_number", {
+          p_organisation_id: organisationId,
+          p_process_code: processCode,
+        });
+
+      if (pkgNumError) {
+        console.error("Failed to generate package number:", pkgNumError);
+        return { success: false, error: `Failed to generate package number: ${pkgNumError.message}`, code: "PKG_NUM_FAILED" };
+      }
+
+      generatedNumbers.push(pkgNumResult as string);
+    }
+
+    // Build payloads with generated package numbers
+    const payloadsWithNumbers = toInsert.map((r, i) => ({
+      ...r.payload,
+      package_number: generatedNumbers[i],
+    }));
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: inserted, error: insertError } = await (supabase as any)
       .from("portal_production_outputs")
-      .insert(toInsert.map((r) => r.payload))
-      .select("id");
+      .insert(payloadsWithNumbers)
+      .select("id, package_number");
 
     if (insertError) {
       console.error("Failed to insert output rows:", insertError);
       return { success: false, error: `Failed to save outputs: ${insertError.message}`, code: "INSERT_FAILED" };
     }
 
-    // Map returned IDs back to client indices
+    // Map returned IDs and package numbers back to client indices
     for (let j = 0; j < toInsert.length; j++) {
-      insertedIds[toInsert[j]!.index] = (inserted as { id: string }[])[j]!.id;
+      const insertedRow = (inserted as { id: string; package_number: string }[])[j]!;
+      insertedIds[toInsert[j]!.index] = insertedRow.id;
+      packageNumbers[toInsert[j]!.index] = insertedRow.package_number;
     }
   }
 
@@ -192,5 +224,5 @@ export async function saveProductionOutputs(
     }
   }
 
-  return { success: true, data: { insertedIds } };
+  return { success: true, data: { insertedIds, packageNumbers } };
 }

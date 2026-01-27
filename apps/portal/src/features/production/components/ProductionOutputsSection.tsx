@@ -120,13 +120,18 @@ export function ProductionOutputsSection({
           return;
         }
 
-        // Update rows with newly assigned dbIds
+        // Update rows with newly assigned dbIds and server-generated package numbers
         if (Object.keys(result.data.insertedIds).length > 0) {
           setRows((prev) =>
             prev.map((row, i) => {
               const newId = result.data.insertedIds[i];
+              const newPackageNumber = result.data.packageNumbers[i];
               if (newId && !row.dbId) {
-                return { ...row, dbId: newId };
+                return {
+                  ...row,
+                  dbId: newId,
+                  packageNumber: newPackageNumber || row.packageNumber,
+                };
               }
               return row;
             })
