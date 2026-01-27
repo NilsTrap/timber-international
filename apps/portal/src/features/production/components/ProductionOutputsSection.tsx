@@ -1,11 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { Sparkles } from "lucide-react";
+import { Sparkles, ClipboardPaste } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@timber/ui";
 import { saveProductionOutputs } from "../actions";
 import { ProductionOutputsTable } from "./ProductionOutputsTable";
+import { OutputPasteImportModal } from "./OutputPasteImportModal";
 import {
   generateClientId,
   generateOutputNumber,
@@ -74,6 +75,7 @@ export function ProductionOutputsSection({
   );
   const [isPending, startTransition] = useTransition();
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [importModalOpen, setImportModalOpen] = useState(false);
 
   // Total output m³
   const totalM3 = useMemo(() => {
@@ -249,6 +251,18 @@ export function ProductionOutputsSection({
     toast.success(`Generated ${newRows.length} output row${newRows.length > 1 ? "s" : ""} from inputs`);
   }, [inputs, rows, dropdowns, debouncedSave, processCode]);
 
+  // ─── Handle Paste Import ───────────────────────────────────────────────────
+
+  const handleImportRows = useCallback(
+    (importedRows: OutputRow[]) => {
+      const updatedRows = [...rows, ...importedRows];
+      setRows(updatedRows);
+      debouncedSave(updatedRows);
+      toast.success(`Imported ${importedRows.length} output row${importedRows.length > 1 ? "s" : ""}`);
+    },
+    [rows, debouncedSave]
+  );
+
   // ─── Keyboard Shortcut: Ctrl+O ─────────────────────────────────────────────
 
   const handleAddRow = useCallback(() => {
@@ -291,16 +305,29 @@ export function ProductionOutputsSection({
             <span className="text-xs text-muted-foreground animate-pulse">Saving...</span>
           )}
         </div>
-        {!readOnly && inputs.length > 0 && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleAutoGenerate}
-            disabled={isPending}
-          >
-            <Sparkles className="h-3.5 w-3.5 mr-1.5" />
-            Auto-Generate from Inputs
-          </Button>
+        {!readOnly && (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setImportModalOpen(true)}
+              disabled={isPending}
+            >
+              <ClipboardPaste className="h-3.5 w-3.5 mr-1.5" />
+              Paste Import
+            </Button>
+            {inputs.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleAutoGenerate}
+                disabled={isPending}
+              >
+                <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+                Auto-Generate from Inputs
+              </Button>
+            )}
+          </div>
         )}
       </div>
 
@@ -311,6 +338,16 @@ export function ProductionOutputsSection({
         processCode={processCode}
         readOnly={readOnly}
       />
+
+      {!readOnly && (
+        <OutputPasteImportModal
+          open={importModalOpen}
+          onOpenChange={setImportModalOpen}
+          dropdowns={dropdowns}
+          processCode={processCode}
+          onImport={handleImportRows}
+        />
+      )}
     </div>
   );
 }
