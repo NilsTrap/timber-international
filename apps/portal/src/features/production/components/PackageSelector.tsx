@@ -633,7 +633,7 @@ export function PackageSelector({
             <div className="flex items-center justify-end gap-4 pt-3 shrink-0">
               {selectedTotals.count > 0 && (
                 <span className="flex items-center gap-3 text-sm text-muted-foreground">
-                  <span>{selectedTotals.count} pkg{selectedTotals.count > 1 ? "s" : ""}</span>
+                  <span>{selectedTotals.count} package{selectedTotals.count > 1 ? "s" : ""}</span>
                   {selectedTotals.pieces > 0 && (
                     <span>{selectedTotals.pieces} pcs</span>
                   )}
