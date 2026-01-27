@@ -271,7 +271,7 @@ export function ProductionOutputsSection({
         // Only update fields that were actually mapped
         for (const field of mappedFields) {
           if (field in partialData && partialData[field as keyof PartialOutputRow] !== undefined) {
-            (merged as Record<string, unknown>)[field] = partialData[field as keyof PartialOutputRow];
+            (merged as unknown as Record<string, unknown>)[field] = partialData[field as keyof PartialOutputRow];
           }
         }
 
@@ -302,7 +302,7 @@ export function ProductionOutputsSection({
           // Apply mapped fields to new row
           for (const field of mappedFields) {
             if (field in partialData && partialData[field as keyof PartialOutputRow] !== undefined) {
-              (newRow as Record<string, unknown>)[field] = partialData[field as keyof PartialOutputRow];
+              (newRow as unknown as Record<string, unknown>)[field] = partialData[field as keyof PartialOutputRow];
             }
           }
 
