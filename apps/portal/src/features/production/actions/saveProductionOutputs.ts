@@ -195,34 +195,40 @@ export async function saveProductionOutputs(
     }
   }
 
-  // INSERT new rows with temporary placeholder numbers
-  // Final package numbers are assigned during validation (to avoid wasting numbers on deleted drafts)
+  // INSERT new rows with real sequential package numbers
+  // Numbers are assigned immediately so ordering is preserved via package_number
   if (toInsert.length > 0) {
-    // Use placeholder format: N-{code}-pending - will be replaced on validation
-    const placeholderNumbers = toInsert.map(() => `N-${effectiveProcessCode}-pending`);
+    for (const { index, payload } of toInsert) {
+      // Generate real package number using the counter
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: pkgNumResult, error: pkgNumError } = await (supabase as any)
+        .rpc("generate_production_package_number", {
+          p_organisation_id: organisationId,
+          p_process_code: effectiveProcessCode,
+        });
 
-    // Build payloads with placeholder package numbers
-    const payloadsWithNumbers = toInsert.map((r, i) => ({
-      ...r.payload,
-      package_number: placeholderNumbers[i],
-    }));
+      if (pkgNumError) {
+        console.error("Failed to generate package number:", pkgNumError);
+        return { success: false, error: `Failed to generate package number: ${pkgNumError.message}`, code: "PKG_NUM_FAILED" };
+      }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: inserted, error: insertError } = await (supabase as any)
-      .from("portal_production_outputs")
-      .insert(payloadsWithNumbers)
-      .select("id, package_number");
+      const packageNumber = pkgNumResult as string;
 
-    if (insertError) {
-      console.error("Failed to insert output rows:", insertError);
-      return { success: false, error: `Failed to save outputs: ${insertError.message}`, code: "INSERT_FAILED" };
-    }
+      // Insert the row with real package number
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: inserted, error: insertError } = await (supabase as any)
+        .from("portal_production_outputs")
+        .insert({ ...payload, package_number: packageNumber })
+        .select("id, package_number")
+        .single();
 
-    // Map returned IDs and package numbers back to client indices
-    for (let j = 0; j < toInsert.length; j++) {
-      const insertedRow = (inserted as { id: string; package_number: string }[])[j]!;
-      insertedIds[toInsert[j]!.index] = insertedRow.id;
-      packageNumbers[toInsert[j]!.index] = insertedRow.package_number;
+      if (insertError) {
+        console.error("Failed to insert output row:", insertError);
+        return { success: false, error: `Failed to save output: ${insertError.message}`, code: "INSERT_FAILED" };
+      }
+
+      insertedIds[index] = inserted.id;
+      packageNumbers[index] = inserted.package_number;
     }
   }
 

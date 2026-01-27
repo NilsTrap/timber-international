@@ -702,6 +702,12 @@ The `readOnly` prop:
 
 For dropdown columns in readOnly: set `type: "dropdown"` with `collapsible: true` and `getValue` returning the already-resolved display string. No `options` array needed.
 
+**Advanced DataEntryTable Features:**
+- **Imperative Handle:** Use `ref` to access `clearFilters()` method for external filter control
+- **Filter State Callback:** `onFilterActiveChange` prop notifies when filters are active (for external "Clear Filters" button)
+- **Column Width Locking:** Automatically locks column widths on initial render to prevent layout jumping when filtering
+- **Ref Forwarding:** Table component forwards refs to inner `<table>` element for DOM access
+
 **Volume Auto-Calculation:**
 - Formula: `(thickness × width × length × pieces) / 1,000,000,000` (mm³ → m³)
 - Only when all values are single numbers (not ranges like "40-50")

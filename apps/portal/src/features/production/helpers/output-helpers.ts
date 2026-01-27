@@ -52,6 +52,7 @@ export function createEmptyOutputRow(index: number, code: string = "OUT"): Outpu
     clientId: generateClientId(),
     dbId: null,
     packageNumber: generateOutputNumber(index, code),
+    shipmentCode: "",
     productNameId: "",
     woodSpeciesId: "",
     humidityId: "",

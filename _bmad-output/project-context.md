@@ -1,7 +1,7 @@
 ---
 project_name: 'Timber-World-Platform'
 user_name: 'Nils'
-date: '2026-01-21'
+date: '2026-01-28'
 status: 'complete'
 sections_completed: ['technology_stack', 'permissions', 'server_actions', 'multi_tenant', 'data_transform', 'supabase', 'react_nextjs', 'file_organization', 'naming', 'i18n', 'testing', 'critical_rules', 'realtime']
 architecture_ref: '_bmad-output/planning-artifacts/architecture.md'
@@ -217,6 +217,56 @@ For overview/list views, use `DataEntryTable` with the `readOnly` prop:
 - Hides: add button, copy/delete actions, input fields
 - Sort is display-only (doesn't mutate source data)
 - Display "-" for null/empty values, volume to 3 decimal places
+
+### DataEntryTable Advanced Features
+
+**Imperative Handle (ref):**
+The table exposes a `DataEntryTableHandle` via `forwardRef` for external control:
+```typescript
+const tableRef = useRef<DataEntryTableHandle>(null);
+// Clear all filters programmatically
+tableRef.current?.clearFilters();
+```
+
+**Filter State Callback:**
+Track when filters are active to show/hide external UI (e.g., "Clear Filters" button):
+```typescript
+<DataEntryTable
+  onFilterActiveChange={(hasActiveFilters) => setShowClearButton(hasActiveFilters)}
+/>
+```
+
+**Column Width Locking:**
+The table automatically locks column widths on initial render to prevent layout jumping when filtering reduces visible content. This ensures stable table width even when filtered rows have shorter content than the full dataset.
+
+**Clear Filters Button Pattern:**
+For read-only tables with external Clear Filters button, use this pattern:
+```typescript
+const tableRef = useRef<DataEntryTableHandle>(null);
+const [hasActiveFilters, setHasActiveFilters] = useState(false);
+
+<div className="space-y-4 w-fit max-w-full">
+  <div className="relative">
+    <SummaryCards items={summaryItems} />
+    {hasActiveFilters && (
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => tableRef.current?.clearFilters()}
+        className="text-xs h-7 absolute right-0 bottom-0"
+      >
+        <X className="h-3 w-3 mr-1" />
+        Clear Filters
+      </Button>
+    )}
+  </div>
+  <DataEntryTable
+    ref={tableRef}
+    onFilterActiveChange={setHasActiveFilters}
+    ...
+  />
+</div>
+```
 
 ### Reference Data (7 Dropdowns)
 

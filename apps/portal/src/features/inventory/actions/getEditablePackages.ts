@@ -26,6 +26,7 @@ export async function getEditablePackages(orgId?: string): Promise<ActionResult<
   const supabase = await createClient();
 
   // Query all packages with both IDs and resolved names
+  // Exclude consumed packages (status = 'consumed')
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: packagesData, error: packagesError } = await (supabase as any)
     .from("inventory_packages")
@@ -56,6 +57,7 @@ export async function getEditablePackages(orgId?: string): Promise<ActionResult<
       ref_fsc!inventory_packages_fsc_id_fkey(value),
       ref_quality!inventory_packages_quality_id_fkey(value)
     `)
+    .neq("status", "consumed")
     .order("package_number", { ascending: true });
 
   if (packagesError) {

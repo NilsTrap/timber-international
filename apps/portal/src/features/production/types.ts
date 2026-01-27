@@ -76,6 +76,7 @@ export interface ProductionOutput {
   id: string;
   productionEntryId: string;
   packageNumber: string;
+  shipmentCode: string | null;
   productNameId: string | null;
   woodSpeciesId: string | null;
   humidityId: string | null;
@@ -95,6 +96,7 @@ export interface OutputRow {
   clientId: string;
   dbId: string | null;
   packageNumber: string;
+  shipmentCode: string;
   productNameId: string;
   woodSpeciesId: string;
   humidityId: string;

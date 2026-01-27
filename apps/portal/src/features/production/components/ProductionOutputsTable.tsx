@@ -78,6 +78,17 @@ export function ProductionOutputsTable({
 }: ProductionOutputsTableProps) {
   const columns: ColumnDef<OutputRow>[] = useMemo(() => {
     const cols: ColumnDef<OutputRow>[] = [
+      // Shipment code (readonly, only populated for validated outputs that have been shipped)
+      ...(readOnly
+        ? [
+            {
+              key: "shipmentCode",
+              label: "Shipment",
+              type: "readonly" as const,
+              getValue: (row: OutputRow) => row.shipmentCode || "-",
+            },
+          ]
+        : []),
       // Package number (readonly, auto-generated)
       {
         key: "packageNumber",
@@ -179,7 +190,7 @@ export function ProductionOutputsTable({
       },
     ];
     return cols;
-  }, [dropdowns]);
+  }, [dropdowns, readOnly]);
 
   const handleCellChange = useCallback(
     (row: OutputRow, columnKey: string, value: string): OutputRow => {
@@ -213,6 +224,7 @@ export function ProductionOutputsTable({
       clientId: generateClientId(),
       dbId: null,
       packageNumber: "",
+      shipmentCode: "",
     }),
     []
   );

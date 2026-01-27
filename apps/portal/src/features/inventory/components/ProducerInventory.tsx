@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState, useCallback } from "react";
-import { DataEntryTable, type ColumnDef } from "@timber/ui";
+import { useMemo, useState, useCallback, useRef } from "react";
+import { DataEntryTable, Button, type ColumnDef, type DataEntryTableHandle } from "@timber/ui";
+import { X } from "lucide-react";
 import { SummaryCards } from "@/features/shipments/components/SummaryCards";
 import type { PackageListItem } from "../types";
 
@@ -10,6 +11,9 @@ interface ProducerInventoryProps {
 }
 
 export function ProducerInventory({ packages }: ProducerInventoryProps) {
+  const tableRef = useRef<DataEntryTableHandle>(null);
+  const [hasActiveFilters, setHasActiveFilters] = useState(false);
+
   const columns: ColumnDef<PackageListItem>[] = useMemo(
     () => [
       {
@@ -131,6 +135,13 @@ export function ProducerInventory({ packages }: ProducerInventoryProps) {
 
   const summaryItems = useMemo(
     () => [
+      {
+        label: "Total m³",
+        value: displayedPackages
+          .reduce((sum, p) => sum + (p.volumeM3 ?? 0), 0)
+          .toFixed(3)
+          .replace(".", ","),
+      },
       { label: "Total Packages", value: displayedPackages.length },
       {
         label: "Total Pieces",
@@ -139,28 +150,36 @@ export function ProducerInventory({ packages }: ProducerInventoryProps) {
           return sum + (isNaN(n) ? 0 : n);
         }, 0),
       },
-      {
-        label: "Total m³",
-        value: displayedPackages
-          .reduce((sum, p) => sum + (p.volumeM3 ?? 0), 0)
-          .toFixed(3)
-          .replace(".", ","),
-      },
     ],
     [displayedPackages]
   );
 
   return (
-    <div className="space-y-4">
-      <SummaryCards items={summaryItems} />
+    <div className="space-y-4 w-fit max-w-full">
+      <div className="relative">
+        <SummaryCards items={summaryItems} />
+        {hasActiveFilters && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => tableRef.current?.clearFilters()}
+            className="text-xs h-7 absolute right-0 bottom-0"
+          >
+            <X className="h-3 w-3 mr-1" />
+            Clear Filters
+          </Button>
+        )}
+      </div>
 
       <DataEntryTable<PackageListItem>
+        ref={tableRef}
         columns={columns}
         rows={packages}
         getRowKey={(row) => row.id}
         readOnly
         collapseStorageKey="producer-inventory-collapsed"
         onDisplayRowsChange={handleDisplayRowsChange}
+        onFilterActiveChange={setHasActiveFilters}
       />
     </div>
   );

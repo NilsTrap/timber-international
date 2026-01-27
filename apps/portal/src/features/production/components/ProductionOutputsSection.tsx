@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@timber/ui";
 import { saveProductionOutputs } from "../actions";
 import { ProductionOutputsTable } from "./ProductionOutputsTable";
-import { OutputPasteImportModal } from "./OutputPasteImportModal";
+import { OutputPasteImportModal, type PartialOutputRow } from "./OutputPasteImportModal";
 import {
   generateClientId,
   generateOutputNumber,
@@ -34,6 +34,7 @@ function dbOutputToRow(output: ProductionOutput, index: number, code: string): O
     clientId: generateClientId(),
     dbId: output.id,
     packageNumber: output.packageNumber || generateOutputNumber(index, code),
+    shipmentCode: output.shipmentCode || "",
     productNameId: output.productNameId || "",
     woodSpeciesId: output.woodSpeciesId || "",
     humidityId: output.humidityId || "",
@@ -212,6 +213,7 @@ export function ProductionOutputsSection({
         clientId: "",
         dbId: null,
         packageNumber: "",
+        shipmentCode: "",
         productNameId: findRefId(dropdowns.productNames, first.productName),
         woodSpeciesId: findRefId(dropdowns.woodSpecies, first.woodSpecies),
         humidityId: findRefId(dropdowns.humidity, first.humidity),
@@ -254,13 +256,74 @@ export function ProductionOutputsSection({
   // ─── Handle Paste Import ───────────────────────────────────────────────────
 
   const handleImportRows = useCallback(
-    (importedRows: OutputRow[]) => {
-      const updatedRows = [...rows, ...importedRows];
+    (partialRows: PartialOutputRow[], mappedFields: string[]) => {
+      // Merge partial data with existing rows
+      // Only update fields that were mapped, keep other fields as they are
+      const updatedRows = rows.map((existingRow, index) => {
+        if (index >= partialRows.length) {
+          // No import data for this row, keep as is
+          return existingRow;
+        }
+
+        const partialData = partialRows[index]!;
+        const merged: OutputRow = { ...existingRow };
+
+        // Only update fields that were actually mapped
+        for (const field of mappedFields) {
+          if (field in partialData && partialData[field as keyof PartialOutputRow] !== undefined) {
+            (merged as Record<string, unknown>)[field] = partialData[field as keyof PartialOutputRow];
+          }
+        }
+
+        // Recalculate volume if dimensions changed and volume wasn't explicitly imported
+        if (
+          (mappedFields.includes("thickness") || mappedFields.includes("width") ||
+           mappedFields.includes("length") || mappedFields.includes("pieces")) &&
+          !mappedFields.includes("volumeM3")
+        ) {
+          if (shouldAutoCalculate(merged)) {
+            const vol = calculateVolume(merged.thickness, merged.width, merged.length, merged.pieces);
+            if (vol !== null) {
+              merged.volumeM3 = vol.toFixed(3);
+              merged.volumeIsCalculated = true;
+            }
+          }
+        }
+
+        return merged;
+      });
+
+      // If import has more rows than existing, add new rows
+      if (partialRows.length > rows.length) {
+        for (let i = rows.length; i < partialRows.length; i++) {
+          const partialData = partialRows[i]!;
+          const newRow = createEmptyOutputRow(i, processCode);
+
+          // Apply mapped fields to new row
+          for (const field of mappedFields) {
+            if (field in partialData && partialData[field as keyof PartialOutputRow] !== undefined) {
+              (newRow as Record<string, unknown>)[field] = partialData[field as keyof PartialOutputRow];
+            }
+          }
+
+          // Calculate volume for new row if possible
+          if (shouldAutoCalculate(newRow) && !mappedFields.includes("volumeM3")) {
+            const vol = calculateVolume(newRow.thickness, newRow.width, newRow.length, newRow.pieces);
+            if (vol !== null) {
+              newRow.volumeM3 = vol.toFixed(3);
+              newRow.volumeIsCalculated = true;
+            }
+          }
+
+          updatedRows.push(newRow);
+        }
+      }
+
       setRows(updatedRows);
       debouncedSave(updatedRows);
-      toast.success(`Imported ${importedRows.length} output row${importedRows.length > 1 ? "s" : ""}`);
+      toast.success(`Updated ${Math.min(partialRows.length, rows.length)} row${Math.min(partialRows.length, rows.length) !== 1 ? "s" : ""}${partialRows.length > rows.length ? `, added ${partialRows.length - rows.length} new` : ""}`);
     },
-    [rows, debouncedSave]
+    [rows, debouncedSave, processCode]
   );
 
   // ─── Keyboard Shortcut: Ctrl+O ─────────────────────────────────────────────

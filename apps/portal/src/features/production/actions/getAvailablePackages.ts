@@ -59,7 +59,7 @@ export async function getAvailablePackages(
     ref_quality!inventory_packages_quality_id_fkey(value)
   `;
 
-  // Query 1: Shipment-sourced packages at producer's facility (exclude consumed)
+  // Query 1: Shipment-sourced packages at producer's facility (exclude consumed and zero-pieces, allow null pieces)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let shipmentQuery = (supabase as any)
     .from("inventory_packages")
@@ -70,13 +70,14 @@ export async function getAvailablePackages(
     `)
     .eq("shipments.to_organisation_id", session.organisationId)
     .neq("status", "consumed")
+    .or("pieces.neq.0,pieces.is.null")
     .order("package_number", { ascending: true });
 
   if (usedPackageIds.length > 0) {
     shipmentQuery = shipmentQuery.not("id", "in", `(${usedPackageIds.join(",")})`);
   }
 
-  // Query 2: Production-sourced packages owned by this producer's organisation (status: produced)
+  // Query 2: Production-sourced packages owned by this producer's organisation (status: produced, non-zero pieces, allow null)
   // Filter by organisation_id for proper multi-tenant isolation (not created_by)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let productionQuery = (supabase as any)
@@ -88,6 +89,7 @@ export async function getAvailablePackages(
     `)
     .eq("portal_production_entries.organisation_id", session.organisationId)
     .eq("status", "produced")
+    .or("pieces.neq.0,pieces.is.null")
     .order("package_number", { ascending: true });
 
   if (usedPackageIds.length > 0) {
@@ -107,6 +109,7 @@ export async function getAvailablePackages(
     .is("shipment_id", null)
     .is("production_entry_id", null)
     .neq("status", "consumed")
+    .or("pieces.neq.0,pieces.is.null")
     .order("package_number", { ascending: true });
 
   if (usedPackageIds.length > 0) {
@@ -169,6 +172,9 @@ export async function getAvailablePackages(
     organisationName: session.organisationName,
     organisationCode: session.organisationCode,
   }));
+
+  // Sort by package number after merging
+  packages.sort((a, b) => (a.packageNumber ?? "").localeCompare(b.packageNumber ?? ""));
 
   return { success: true, data: packages };
 }

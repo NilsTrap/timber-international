@@ -148,7 +148,7 @@ export function PackageSelector({
     setFilterState((prev) => ({ ...prev, [columnKey]: values }));
   }, []);
 
-  // Apply filters and sort
+  // Apply filters and sort (default sort by package number)
   const displayRows = useMemo(() => {
     let rows = [...packages];
     for (const [colKey, filterValues] of Object.entries(filterState)) {
@@ -166,6 +166,9 @@ export function PackageSelector({
           return sortState.direction === "asc" ? cmp : -cmp;
         });
       }
+    } else {
+      // Default sort by package number
+      rows.sort((a, b) => (a.packageNumber ?? "").localeCompare(b.packageNumber ?? "", undefined, { numeric: true }));
     }
     return rows;
   }, [packages, filterState, sortState, columns]);
@@ -509,7 +512,7 @@ export function PackageSelector({
                           <span className="flex items-center gap-0.5">
                             {col.collapsible && (
                               <span className="text-muted-foreground text-[10px]">
-                                {isCollapsed ? "▸" : "▾"}
+                                {isCollapsed ? "›" : "‹"}
                               </span>
                             )}
                             {isCollapsed ? col.label.slice(0, 3) : col.label}
@@ -543,7 +546,7 @@ export function PackageSelector({
                     return (
                       <TableRow
                         key={pkg.id}
-                        className={isSelected ? "bg-accent/30" : "hover:bg-accent/10 cursor-pointer"}
+                        className={isSelected ? "bg-accent/30 hover:bg-accent/40" : "hover:bg-accent/10 cursor-pointer"}
                         onClick={() => handleToggleSelect(pkg)}
                       >
                         {/* Checkbox */}

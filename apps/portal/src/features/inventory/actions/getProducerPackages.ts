@@ -161,5 +161,8 @@ export async function getProducerPackages(): Promise<ActionResult<PackageListIte
       organisationCode: session.organisationCode,
     }));
 
+  // Sort by package number after merging
+  packages.sort((a, b) => (a.packageNumber ?? "").localeCompare(b.packageNumber ?? ""));
+
   return { success: true, data: packages };
 }

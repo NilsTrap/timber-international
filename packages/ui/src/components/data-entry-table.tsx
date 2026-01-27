@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState, useEffect, useMemo, useRef } from "react";
+import { useCallback, useState, useEffect, useMemo, useRef, forwardRef, useImperativeHandle } from "react";
 import { Plus, Copy, Trash2, X } from "lucide-react";
 import { Button } from "./button";
 import { Input } from "./input";
@@ -77,6 +77,12 @@ export interface ColumnDef<TRow> {
   navigable?: boolean;
 }
 
+/** Imperative handle for DataEntryTable */
+export interface DataEntryTableHandle {
+  /** Clear all filters and sort state */
+  clearFilters: () => void;
+}
+
 export interface DataEntryTableProps<TRow> {
   /** Column definitions */
   columns: ColumnDef<TRow>[];
@@ -119,6 +125,8 @@ export interface DataEntryTableProps<TRow> {
   readOnly?: boolean;
   /** Called when displayed rows change (after filtering/sorting). Useful for external summaries. */
   onDisplayRowsChange?: (rows: TRow[]) => void;
+  /** Called when filter/sort active state changes. Useful for showing external clear button. */
+  onFilterActiveChange?: (hasActiveFilters: boolean) => void;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -130,30 +138,63 @@ function getOptionLabel(options: DropdownOption[], id: string): string {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-function DataEntryTable<TRow>({
-  columns,
-  rows,
-  onRowsChange,
-  getRowKey,
-  createRow,
-  copyRow,
-  renumberRows,
-  onCellChange,
-  title = "Data",
-  addRowLabel = "Add Row",
-  addRowSuffix,
-  collapseStorageKey = "det-collapsed-columns",
-  idPrefix = "det",
-  allowEmpty = false,
-  readOnly = false,
-  onDisplayRowsChange,
-}: DataEntryTableProps<TRow>) {
+function DataEntryTableInner<TRow>(
+  {
+    columns,
+    rows,
+    onRowsChange,
+    getRowKey,
+    createRow,
+    copyRow,
+    renumberRows,
+    onCellChange,
+    title = "Data",
+    addRowLabel = "Add Row",
+    addRowSuffix,
+    collapseStorageKey = "det-collapsed-columns",
+    idPrefix = "det",
+    allowEmpty = false,
+    readOnly = false,
+    onDisplayRowsChange,
+    onFilterActiveChange,
+  }: DataEntryTableProps<TRow>,
+  ref: React.ForwardedRef<DataEntryTableHandle>
+) {
   // ─── Collapsed Columns ──────────────────────────────────────────────────
   const [collapsedColumns, setCollapsedColumns] = useState<Set<string>>(new Set());
   const collapseLoaded = useRef(false);
 
   // Track which dropdown is currently in "selection mode" (user pressed Enter to browse options)
   const activeDropdownRef = useRef<string | null>(null);
+
+  // Lock column widths after initial render to prevent jumping when filtering
+  const tableRef = useRef<HTMLTableElement>(null);
+  const [lockedColumnWidths, setLockedColumnWidths] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    if (tableRef.current && Object.keys(lockedColumnWidths).length === 0 && rows.length > 0) {
+      // Use requestAnimationFrame to ensure we capture after paint
+      requestAnimationFrame(() => {
+        if (tableRef.current) {
+          const headerCells = tableRef.current.querySelectorAll('thead th');
+          const widths: Record<string, number> = {};
+          // Only iterate up to columns.length to avoid the actions column (if present)
+          const colCount = Math.min(headerCells.length, columns.length);
+          for (let index = 0; index < colCount; index++) {
+            const cell = headerCells[index];
+            const col = columns[index];
+            if (cell && col) {
+              // Get the actual rendered width of the column
+              widths[col.key] = cell.getBoundingClientRect().width;
+            }
+          }
+          if (Object.keys(widths).length > 0) {
+            setLockedColumnWidths(widths);
+          }
+        }
+      });
+    }
+  }, [rows.length, lockedColumnWidths]);
 
   // Load collapsed columns from localStorage after mount (avoids hydration mismatch)
   useEffect(() => {
@@ -326,6 +367,16 @@ function DataEntryTable<TRow>({
     setSortState(null);
   }, []);
 
+  // Expose imperative handle for external filter control
+  useImperativeHandle(ref, () => ({
+    clearFilters: handleClearAll,
+  }), [handleClearAll]);
+
+  // Notify parent when filter active state changes
+  useEffect(() => {
+    onFilterActiveChange?.(hasActiveFilters);
+  }, [hasActiveFilters, onFilterActiveChange]);
+
   // ─── Row Operations ─────────────────────────────────────────────────────
   const updateCell = useCallback(
     (originalIndex: number, columnKey: string, value: string) => {
@@ -372,6 +423,50 @@ function DataEntryTable<TRow>({
       onRowsChange(result);
     },
     [rows, onRowsChange, renumberRows, allowEmpty]
+  );
+
+  // ─── Fill Down ─────────────────────────────────────────────────────────
+  const handleFillDown = useCallback(
+    (renderIndex: number, columnKey: string) => {
+      if (!onRowsChange || readOnly) return;
+
+      // Get the column definition
+      const col = columns.find((c) => c.key === columnKey);
+      if (!col) return;
+
+      // Get the source row (from displayRows which may be filtered)
+      const sourceEntry = displayRows[renderIndex];
+      if (!sourceEntry) return;
+
+      const sourceValue = col.getValue(sourceEntry.row);
+      if (!sourceValue) return; // Nothing to fill
+
+      // Fill all empty cells below in the display order
+      const newRows = [...rows];
+      let fillCount = 0;
+
+      for (let i = renderIndex + 1; i < displayRows.length; i++) {
+        const targetEntry = displayRows[i];
+        if (!targetEntry) continue;
+
+        const targetValue = col.getValue(targetEntry.row);
+        if (!targetValue || targetValue === "") {
+          // Cell is empty, fill it
+          const targetRow = newRows[targetEntry.originalIndex]!;
+          if (onCellChange) {
+            newRows[targetEntry.originalIndex] = onCellChange(targetRow, columnKey, sourceValue);
+          } else {
+            newRows[targetEntry.originalIndex] = { ...targetRow, [columnKey]: sourceValue } as TRow;
+          }
+          fillCount++;
+        }
+      }
+
+      if (fillCount > 0) {
+        onRowsChange(newRows);
+      }
+    },
+    [rows, displayRows, columns, onRowsChange, onCellChange, readOnly]
   );
 
   // ─── Keyboard Navigation ────────────────────────────────────────────────
@@ -465,6 +560,13 @@ function DataEntryTable<TRow>({
       field: string,
       totalRows: number
     ) => {
+      // Ctrl+D or Cmd+D: Fill down
+      if ((e.ctrlKey || e.metaKey) && e.key === "d") {
+        e.preventDefault();
+        handleFillDown(renderIndex, field);
+        return;
+      }
+
       if (e.key === "Enter") {
         e.preventDefault();
         const isLastNav = navFieldOrder.indexOf(field) === navFieldOrder.length - 1;
@@ -500,7 +602,7 @@ function DataEntryTable<TRow>({
         focusPrevField(renderIndex, field);
       }
     },
-    [navFieldOrder, focusNextField, focusPrevField, focusField]
+    [navFieldOrder, focusNextField, focusPrevField, focusField, handleFillDown]
   );
 
   // ─── Rendering Helpers ──────────────────────────────────────────────────
@@ -523,6 +625,13 @@ function DataEntryTable<TRow>({
           focusNextField(renderIndex, col.key, displayRows.length);
         }}
         onKeyDown={(e) => {
+          // Ctrl+D or Cmd+D: Fill down
+          if ((e.ctrlKey || e.metaKey) && e.key === "d") {
+            e.preventDefault();
+            handleFillDown(renderIndex, col.key);
+            return;
+          }
+
           const isActive = activeDropdownRef.current === dropdownId;
 
           if (e.key === "Enter") {
@@ -632,7 +741,12 @@ function DataEntryTable<TRow>({
     <div className="space-y-4">
       {!readOnly && (
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">{title}</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg font-semibold">{title}</h2>
+            <span className="text-[10px] text-muted-foreground">
+              <kbd className="bg-muted px-1 py-0.5 rounded border">Ctrl+D</kbd> fill down
+            </span>
+          </div>
           <div className="flex items-center gap-2">
             {hasActiveFilters && (
               <Button variant="ghost" size="sm" onClick={handleClearAll} className="text-xs h-7">
@@ -649,17 +763,8 @@ function DataEntryTable<TRow>({
         </div>
       )}
 
-      {readOnly && hasActiveFilters && (
-        <div className="flex justify-end">
-          <Button variant="ghost" size="sm" onClick={handleClearAll} className="text-xs h-7">
-            <X className="h-3 w-3 mr-1" />
-            Clear Filters
-          </Button>
-        </div>
-      )}
-
-      <div className="rounded-lg border overflow-x-auto w-fit max-w-full pb-2">
-        <Table className="w-auto">
+      <div className="rounded-lg border overflow-x-auto w-fit max-w-full">
+        <Table ref={tableRef} className="mb-3">
           <TableHeader>
             <TableRow>
               {columns.map((col) => {
@@ -668,10 +773,12 @@ function DataEntryTable<TRow>({
                   col.filterable !== false && col.type !== "custom";
 
                 if (col.collapsible) {
+                  const lockedWidth = lockedColumnWidths[col.key];
                   return (
                     <TableHead
                       key={col.key}
                       className={`px-1 text-xs cursor-pointer select-none hover:bg-accent/50 transition-colors whitespace-nowrap ${isCollapsed ? "w-[30px]" : ""}`}
+                      style={!isCollapsed && lockedWidth ? { minWidth: lockedWidth } : undefined}
                       onClick={() => toggleColumn(col.key)}
                       title={isCollapsed ? `Expand ${col.label}` : `Collapse ${col.label}`}
                     >
@@ -696,8 +803,13 @@ function DataEntryTable<TRow>({
                   );
                 }
 
+                const lockedWidth = lockedColumnWidths[col.key];
                 return (
-                  <TableHead key={col.key} className="px-1 text-xs whitespace-nowrap">
+                  <TableHead
+                    key={col.key}
+                    className="px-1 text-xs whitespace-nowrap"
+                    style={lockedWidth ? { minWidth: lockedWidth } : undefined}
+                  >
                     {showFilter ? (
                       <span className="flex items-center gap-0.5">
                         {col.label}
@@ -858,5 +970,11 @@ function DataEntryTable<TRow>({
     </div>
   );
 }
+
+// Wrap with forwardRef to expose imperative handle
+const DataEntryTable = forwardRef(DataEntryTableInner) as <TRow>(
+  props: DataEntryTableProps<TRow> & { ref?: React.ForwardedRef<DataEntryTableHandle> }
+) => React.ReactElement;
+(DataEntryTable as React.FC).displayName = "DataEntryTable";
 
 export { DataEntryTable };

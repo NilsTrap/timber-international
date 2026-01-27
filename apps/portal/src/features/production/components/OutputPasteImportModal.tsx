@@ -53,12 +53,16 @@ function autoDetectMapping(header: string): FieldKey {
   return "skip";
 }
 
+/** Partial row data with only the mapped fields */
+export type PartialOutputRow = Partial<OutputRow>;
+
 interface OutputPasteImportModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   dropdowns: ReferenceDropdowns;
   processCode: string;
-  onImport: (rows: OutputRow[]) => void;
+  /** Called with partial rows (only mapped fields) and list of mapped field keys */
+  onImport: (rows: PartialOutputRow[], mappedFields: string[]) => void;
 }
 
 export function OutputPasteImportModal({
@@ -121,14 +125,36 @@ export function OutputPasteImportModal({
     []
   );
 
-  // Convert parsed rows to OutputRow[]
-  const convertToOutputRows = useCallback((): OutputRow[] => {
+  // Get list of mapped field keys (OutputRow field names, not display names)
+  const getMappedFields = useCallback((): string[] => {
+    const fieldMap: Record<string, string> = {
+      productName: "productNameId",
+      woodSpecies: "woodSpeciesId",
+      humidity: "humidityId",
+      type: "typeId",
+      processing: "processingId",
+      fsc: "fscId",
+      quality: "qualityId",
+      thickness: "thickness",
+      width: "width",
+      length: "length",
+      pieces: "pieces",
+      volumeM3: "volumeM3",
+    };
+
+    const mapped = new Set<string>();
+    for (const mapping of columnMappings) {
+      if (mapping && mapping !== "skip" && fieldMap[mapping]) {
+        mapped.add(fieldMap[mapping]);
+      }
+    }
+    return [...mapped];
+  }, [columnMappings]);
+
+  // Convert parsed rows to partial OutputRow[] (only mapped fields)
+  const convertToPartialRows = useCallback((): PartialOutputRow[] => {
     return parsedData.rows.map((row) => {
-      const output: Partial<OutputRow> = {
-        clientId: generateClientId(),
-        dbId: null,
-        packageNumber: `N-${processCode}-pending`,
-      };
+      const output: PartialOutputRow = {};
 
       row.forEach((cellValue, colIndex) => {
         const mapping = columnMappings[colIndex];
@@ -180,51 +206,18 @@ export function OutputPasteImportModal({
         }
       });
 
-      // Complete the output row with defaults
-      const completeRow: OutputRow = {
-        clientId: output.clientId!,
-        dbId: null,
-        packageNumber: output.packageNumber!,
-        productNameId: output.productNameId ?? "",
-        woodSpeciesId: output.woodSpeciesId ?? "",
-        humidityId: output.humidityId ?? "",
-        typeId: output.typeId ?? "",
-        processingId: output.processingId ?? "",
-        fscId: output.fscId ?? "",
-        qualityId: output.qualityId ?? "",
-        thickness: output.thickness ?? "",
-        width: output.width ?? "",
-        length: output.length ?? "",
-        pieces: output.pieces ?? "",
-        volumeM3: output.volumeM3 ?? "",
-        volumeIsCalculated: output.volumeIsCalculated ?? false,
-      };
-
-      // Auto-calculate volume if not provided and dimensions are complete
-      if (!completeRow.volumeM3 && shouldAutoCalculate(completeRow)) {
-        const vol = calculateVolume(
-          completeRow.thickness,
-          completeRow.width,
-          completeRow.length,
-          completeRow.pieces
-        );
-        if (vol !== null) {
-          completeRow.volumeM3 = vol.toFixed(3);
-          completeRow.volumeIsCalculated = true;
-        }
-      }
-
-      return completeRow;
+      return output;
     });
-  }, [parsedData.rows, columnMappings, dropdowns, findRefId, processCode]);
+  }, [parsedData.rows, columnMappings, dropdowns, findRefId]);
 
   const handleImport = useCallback(() => {
-    const rows = convertToOutputRows();
-    onImport(rows);
+    const partialRows = convertToPartialRows();
+    const mappedFields = getMappedFields();
+    onImport(partialRows, mappedFields);
     setPastedText("");
     setColumnMappings([]);
     onOpenChange(false);
-  }, [convertToOutputRows, onImport, onOpenChange]);
+  }, [convertToPartialRows, getMappedFields, onImport, onOpenChange]);
 
   const handleClose = useCallback(() => {
     setPastedText("");

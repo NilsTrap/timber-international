@@ -65,6 +65,7 @@ export {
   DataEntryTable,
   type ColumnDef,
   type ColumnType,
+  type DataEntryTableHandle,
   type DataEntryTableProps,
   type DropdownOption,
 } from "./components/data-entry-table";

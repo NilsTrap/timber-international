@@ -214,13 +214,20 @@ export function PackagesTab({ packages, canDelete = false }: PackagesTabProps) {
 
   const summaryItems = useMemo(
     () => [
-      { label: "Total Packages", value: displayedPackages.length },
       {
         label: "Total m³",
         value: displayedPackages
           .reduce((sum, p) => sum + (p.volumeM3 ?? 0), 0)
           .toFixed(3)
           .replace(".", ","),
+      },
+      { label: "Total Packages", value: displayedPackages.length },
+      {
+        label: "Total Pieces",
+        value: displayedPackages.reduce((sum, p) => {
+          const n = p.pieces ? parseInt(p.pieces, 10) : 0;
+          return sum + (isNaN(n) ? 0 : n);
+        }, 0),
       },
     ],
     [displayedPackages]

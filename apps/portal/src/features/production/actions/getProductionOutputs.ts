@@ -37,11 +37,31 @@ export async function getProductionOutputs(
     .from("portal_production_outputs")
     .select("id, production_entry_id, package_number, product_name_id, wood_species_id, humidity_id, type_id, processing_id, fsc_id, quality_id, thickness, width, length, pieces, volume_m3, created_at")
     .eq("production_entry_id", productionEntryId)
-    .order("created_at", { ascending: true });
+    .order("package_number", { ascending: true });
 
   if (error) {
     console.error("Failed to fetch production outputs:", error);
     return { success: false, error: `Failed to fetch outputs: ${error.message}`, code: "QUERY_FAILED" };
+  }
+
+  // Fetch shipment codes from inventory_packages (for validated productions)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: inventoryData, error: inventoryError } = await (supabase as any)
+    .from("inventory_packages")
+    .select("package_number, shipments(shipment_code)")
+    .eq("production_entry_id", productionEntryId);
+
+  if (inventoryError) {
+    console.warn("Failed to fetch shipment codes:", inventoryError);
+  }
+
+  // Build a map of package_number -> shipment_code
+  const shipmentMap = new Map<string, string>();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  for (const pkg of inventoryData || []) {
+    if (pkg.shipments?.shipment_code) {
+      shipmentMap.set(pkg.package_number, pkg.shipments.shipment_code);
+    }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -49,6 +69,7 @@ export async function getProductionOutputs(
     id: row.id,
     productionEntryId: row.production_entry_id,
     packageNumber: row.package_number,
+    shipmentCode: shipmentMap.get(row.package_number) || null,
     productNameId: row.product_name_id,
     woodSpeciesId: row.wood_species_id,
     humidityId: row.humidity_id,

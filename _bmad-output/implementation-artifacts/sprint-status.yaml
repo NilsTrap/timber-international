@@ -196,3 +196,29 @@ ad_hoc_changes:
       - "src/features/inventory/components/AdminAddInventoryForm.tsx"
     database_changes:
       - "Unique index on shipments.shipment_code now excludes 'ADMIN', '-', and empty string"
+
+  - date: 2026-01-28
+    description: "DataEntryTable UX improvements and production outputs shipment code"
+    changes:
+      - "Added shipment code column to validated production outputs (read-only mode only)"
+      - "Fixed package selector hover colors: selected rows now use bg-accent/30 hover:bg-accent/40"
+      - "Added DataEntryTable imperative handle with clearFilters() method for external control"
+      - "Added onFilterActiveChange callback to track filter state externally"
+      - "Implemented column width locking to prevent table jumping when filtering"
+      - "Added displayName to DataEntryTable forwardRef for React DevTools"
+      - "Table component now supports ref forwarding to inner table element"
+      - "Clear Filters button in inventory views positioned at bottom-right of summary cards"
+      - "Inventory view containers use w-fit max-w-full for proper responsive behavior"
+      - "Standardized collapse/expand icons to use › and ‹ consistently"
+    files_modified:
+      - "packages/ui/src/components/data-entry-table.tsx"
+      - "packages/ui/src/components/table.tsx"
+      - "packages/ui/src/index.ts"
+      - "apps/portal/src/features/inventory/components/ProducerInventory.tsx"
+      - "apps/portal/src/features/inventory/components/AdminInventoryViewTab.tsx"
+      - "apps/portal/src/features/production/components/PackageSelector.tsx"
+      - "apps/portal/src/features/production/components/ProductionOutputsTable.tsx"
+      - "apps/portal/src/features/production/components/ProductionOutputsSection.tsx"
+      - "apps/portal/src/features/production/actions/getProductionOutputs.ts"
+      - "apps/portal/src/features/production/types.ts"
+      - "apps/portal/src/features/production/helpers/output-helpers.ts"

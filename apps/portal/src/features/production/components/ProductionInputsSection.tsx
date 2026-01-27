@@ -108,9 +108,12 @@ export function ProductionInputsSection({
       </div>
 
       {inputs.length === 0 ? (
-        <div className="rounded-lg border bg-card p-6 text-center">
+        <div
+          className={`rounded-lg border bg-card p-6 text-center ${!readOnly ? "cursor-pointer hover:border-primary/50 hover:bg-accent/50 transition-colors" : ""}`}
+          onClick={!readOnly ? () => setSelectorOpen(true) : undefined}
+        >
           <p className="text-sm text-muted-foreground">
-            {readOnly ? "No inputs were used in this production." : "No inputs added yet. Click \"+ Add Input\" to select packages from inventory."}
+            {readOnly ? "No inputs were used in this production." : "No inputs added yet. Click here to select packages from inventory."}
           </p>
         </div>
       ) : (

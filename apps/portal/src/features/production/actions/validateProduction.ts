@@ -99,12 +99,13 @@ export async function validateProduction(
     return { success: false, error: "At least one input is required", code: "VALIDATION_FAILED" };
   }
 
-  // 3. Fetch all outputs
+  // 3. Fetch all outputs (ordered by package_number to preserve row sequence)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: outputs, error: outputsError } = await (supabase as any)
     .from("portal_production_outputs")
     .select("id, package_number, product_name_id, wood_species_id, humidity_id, type_id, processing_id, fsc_id, quality_id, thickness, width, length, pieces, volume_m3")
-    .eq("production_entry_id", productionEntryId);
+    .eq("production_entry_id", productionEntryId)
+    .order("package_number", { ascending: true });
 
   if (outputsError) {
     await revertStatus();
@@ -123,72 +124,22 @@ export async function validateProduction(
     return { success: false, error: "All outputs must have volume > 0", code: "VALIDATION_FAILED" };
   }
 
-  // 4. Generate final package numbers for outputs
-  // For "Sorting" process, inherit the process code from input packages
-  const isSortingProcess = processName?.toLowerCase() === "sorting";
-  let effectiveProcessCode = processCode;
+  // 4. Package numbers are already assigned in the draft - just use them
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const packageNumbers = outputs.map((o: any) => o.package_number);
 
-  if (isSortingProcess && inputs.length > 0) {
-    // Get the first input package to extract its process code
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: inputPkg } = await (supabase as any)
-      .from("inventory_packages")
-      .select("package_number")
-      .eq("id", inputs[0].package_id)
-      .single();
-
-    if (inputPkg?.package_number) {
-      const match = inputPkg.package_number.match(/^N-([A-Z]{2})-\d+$/);
-      if (match) {
-        effectiveProcessCode = match[1];
-      }
-    }
-  }
-
-  // Generate final package numbers using the counter
-  const finalPackageNumbers: string[] = [];
-  for (let i = 0; i < outputs.length; i++) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: pkgNumResult, error: pkgNumError } = await (supabase as any)
-      .rpc("generate_production_package_number", {
-        p_organisation_id: organisationId,
-        p_process_code: effectiveProcessCode,
-      });
-
-    if (pkgNumError) {
-      await revertStatus();
-      return { success: false, error: `Failed to generate package number: ${pkgNumError.message}`, code: "PKG_NUM_FAILED" };
-    }
-
-    finalPackageNumbers.push(pkgNumResult as string);
-  }
-
-  // Update production outputs with final package numbers
-  for (let i = 0; i < outputs.length; i++) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error: updateOutputError } = await (supabase as any)
-      .from("portal_production_outputs")
-      .update({ package_number: finalPackageNumbers[i] })
-      .eq("id", outputs[i].id);
-
-    if (updateOutputError) {
-      await revertStatus();
-      return { success: false, error: `Failed to update output package number: ${updateOutputError.message}`, code: "UPDATE_FAILED" };
-    }
-  }
-
-  // 6. Pre-check: verify final package numbers won't conflict
-  if (finalPackageNumbers.length > 0) {
+  // Pre-check: verify package numbers won't conflict with existing inventory
+  if (packageNumbers.length > 0) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: existing } = await (supabase as any)
       .from("inventory_packages")
       .select("package_number")
-      .in("package_number", finalPackageNumbers);
+      .in("package_number", packageNumbers);
     if (existing && existing.length > 0) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const conflicts = existing.map((e: any) => e.package_number).join(", ");
       await revertStatus();
-      return { success: false, error: `Output package numbers already exist: ${conflicts}`, code: "VALIDATION_FAILED" };
+      return { success: false, error: `Output package numbers already exist in inventory: ${conflicts}`, code: "VALIDATION_FAILED" };
     }
   }
 
@@ -297,12 +248,13 @@ export async function validateProduction(
     }
   }
 
-  // 7. Create output inventory packages
+  // 5. Create output inventory packages (using existing package numbers from draft)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const outputPackages = outputs.map((output: any, index: number) => ({
+    organisation_id: organisationId,
     production_entry_id: productionEntryId,
     shipment_id: null,
-    package_number: finalPackageNumbers[index],
+    package_number: output.package_number,
     package_sequence: index + 1,
     product_name_id: output.product_name_id,
     wood_species_id: output.wood_species_id,
