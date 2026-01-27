@@ -10,8 +10,8 @@ export function generateClientId(): string {
 }
 
 export function generateOutputNumber(index: number, code: string): string {
-  // Temporary placeholder - will be replaced by server-generated number (N-{code}-0001)
-  return `N-${code}-????`;
+  // Temporary placeholder - will be replaced by server-generated number on validation
+  return `N-${code}-pending`;
 }
 
 export function isRange(val: string): boolean {

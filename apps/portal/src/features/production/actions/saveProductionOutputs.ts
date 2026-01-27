@@ -198,8 +198,8 @@ export async function saveProductionOutputs(
   // INSERT new rows with temporary placeholder numbers
   // Final package numbers are assigned during validation (to avoid wasting numbers on deleted drafts)
   if (toInsert.length > 0) {
-    // Use placeholder format: (pending-{code}) - will be replaced on validation
-    const placeholderNumbers = toInsert.map((_, i) => `(pending-${effectiveProcessCode}-${i + 1})`);
+    // Use placeholder format: N-{code}-pending - will be replaced on validation
+    const placeholderNumbers = toInsert.map(() => `N-${effectiveProcessCode}-pending`);
 
     // Build payloads with placeholder package numbers
     const payloadsWithNumbers = toInsert.map((r, i) => ({
