@@ -44,27 +44,48 @@ export async function getProducerMetrics(): Promise<ActionResult<ProducerMetrics
     }
   }
 
-  // 1b. Production-sourced packages (created by this producer, status = produced)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: productionPkgs, error: productionError } = await (supabase as any)
-    .from("inventory_packages")
-    .select("volume_m3, portal_production_entries!inner(created_by)")
-    .eq("portal_production_entries.created_by", session.id)
-    .eq("status", "produced");
-
-  if (productionError) {
-    console.error("[getProducerMetrics] Failed to fetch production packages:", productionError.message);
-  } else if (productionPkgs) {
+  // 1b. Production-sourced packages (from this producer's organisation, status = produced)
+  if (session.organisationId) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    totalInventoryM3 += productionPkgs.reduce((sum: number, pkg: any) => sum + (Number(pkg.volume_m3) || 0), 0);
+    const { data: productionPkgs, error: productionError } = await (supabase as any)
+      .from("inventory_packages")
+      .select("volume_m3, portal_production_entries!inner(organisation_id)")
+      .eq("portal_production_entries.organisation_id", session.organisationId)
+      .eq("status", "produced");
+
+    if (productionError) {
+      console.error("[getProducerMetrics] Failed to fetch production packages:", productionError.message);
+    } else if (productionPkgs) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      totalInventoryM3 += productionPkgs.reduce((sum: number, pkg: any) => sum + (Number(pkg.volume_m3) || 0), 0);
+    }
   }
 
-  // Query 2: Production totals from validated entries (created by this user)
+  // 1c. Direct inventory packages (admin-added, no shipment or production source)
+  if (session.organisationId) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: directPkgs, error: directError } = await (supabase as any)
+      .from("inventory_packages")
+      .select("volume_m3")
+      .eq("organisation_id", session.organisationId)
+      .is("shipment_id", null)
+      .is("production_entry_id", null)
+      .neq("status", "consumed");
+
+    if (directError) {
+      console.error("[getProducerMetrics] Failed to fetch direct packages:", directError.message);
+    } else if (directPkgs) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      totalInventoryM3 += directPkgs.reduce((sum: number, pkg: any) => sum + (Number(pkg.volume_m3) || 0), 0);
+    }
+  }
+
+  // Query 2: Production totals from validated entries (from this organisation)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: entries, error: entriesError } = await (supabase as any)
     .from("portal_production_entries")
     .select("total_input_m3, total_output_m3")
-    .eq("created_by", session.id)
+    .eq("organisation_id", session.organisationId)
     .eq("status", "validated");
 
   let totalProductionVolumeM3 = 0;
