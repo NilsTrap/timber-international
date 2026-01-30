@@ -10,8 +10,9 @@ export function generateClientId(): string {
 }
 
 export function generateOutputNumber(index: number, code: string): string {
-  // Temporary placeholder - will be replaced by server-generated number on validation
-  return `N-${code}-pending`;
+  // Package numbers are now assigned manually via "Assign Package Numbers" button
+  // Return empty string for new rows
+  return "";
 }
 
 export function isRange(val: string): boolean {

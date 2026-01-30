@@ -141,10 +141,10 @@ export async function saveProductionOutputs(
   const packageNumbers: Record<number, string> = {};
 
   // Helper to build DB row payload
-  function toDbRow(row: OutputRowInput) {
+  function toDbRow(row: OutputRowInput, index: number) {
     return {
       production_entry_id: productionEntryId,
-      package_number: row.packageNumber,
+      package_number: row.packageNumber || null,
       product_name_id: row.productNameId || null,
       wood_species_id: row.woodSpeciesId || null,
       humidity_id: row.humidityId || null,
@@ -157,6 +157,7 @@ export async function saveProductionOutputs(
       length: row.length || null,
       pieces: row.pieces || null,
       volume_m3: row.volumeM3,
+      sort_order: index,
     };
   }
 
@@ -186,39 +187,24 @@ export async function saveProductionOutputs(
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i]!;
     if (!row.dbId) {
-      toInsert.push({ index: i, payload: toDbRow(row) });
+      toInsert.push({ index: i, payload: toDbRow(row, i) });
     } else {
       const existing = existingMap.get(row.dbId);
       if (existing && hasChanged(row, existing)) {
-        toUpdate.push({ id: row.dbId, payload: toDbRow(row) });
+        toUpdate.push({ id: row.dbId, payload: toDbRow(row, i) });
       }
     }
   }
 
-  // INSERT new rows with real sequential package numbers
-  // Numbers are assigned immediately so ordering is preserved via package_number
+  // INSERT new rows without package numbers
+  // Package numbers are assigned later via "Assign Package Numbers" button
   if (toInsert.length > 0) {
     for (const { index, payload } of toInsert) {
-      // Generate real package number using the counter
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: pkgNumResult, error: pkgNumError } = await (supabase as any)
-        .rpc("generate_production_package_number", {
-          p_organisation_id: organisationId,
-          p_process_code: effectiveProcessCode,
-        });
-
-      if (pkgNumError) {
-        console.error("Failed to generate package number:", pkgNumError);
-        return { success: false, error: `Failed to generate package number: ${pkgNumError.message}`, code: "PKG_NUM_FAILED" };
-      }
-
-      const packageNumber = pkgNumResult as string;
-
-      // Insert the row with real package number
+      // Insert the row without package number (will be assigned later)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: inserted, error: insertError } = await (supabase as any)
         .from("portal_production_outputs")
-        .insert({ ...payload, package_number: packageNumber })
+        .insert(payload)
         .select("id, package_number")
         .single();
 
@@ -228,7 +214,7 @@ export async function saveProductionOutputs(
       }
 
       insertedIds[index] = inserted.id;
-      packageNumbers[index] = inserted.package_number;
+      packageNumbers[index] = inserted.package_number || "";
     }
   }
 

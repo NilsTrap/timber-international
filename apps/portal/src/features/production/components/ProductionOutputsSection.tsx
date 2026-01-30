@@ -1,10 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { Sparkles, ClipboardPaste } from "lucide-react";
+import { Sparkles, ClipboardPaste, Hash } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@timber/ui";
-import { saveProductionOutputs } from "../actions";
+import { saveProductionOutputs, assignPackageNumbers } from "../actions";
 import { ProductionOutputsTable } from "./ProductionOutputsTable";
 import { OutputPasteImportModal, type PartialOutputRow } from "./OutputPasteImportModal";
 import {
@@ -33,7 +33,7 @@ function dbOutputToRow(output: ProductionOutput, index: number, code: string): O
   return {
     clientId: generateClientId(),
     dbId: output.id,
-    packageNumber: output.packageNumber || generateOutputNumber(index, code),
+    packageNumber: output.packageNumber || "",
     shipmentCode: output.shipmentCode || "",
     productNameId: output.productNameId || "",
     woodSpeciesId: output.woodSpeciesId || "",
@@ -75,6 +75,7 @@ export function ProductionOutputsSection({
     initialOutputs.map((o, i) => dbOutputToRow(o, i, processCode))
   );
   const [isPending, startTransition] = useTransition();
+  const [isAssigningNumbers, setIsAssigningNumbers] = useState(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [importModalOpen, setImportModalOpen] = useState(false);
 
@@ -156,6 +157,53 @@ export function ProductionOutputsSection({
     },
     [performSave]
   );
+
+  // ─── Assign Package Numbers Handler ──────────────────────────────────────────
+
+  const handleAssignNumbers = useCallback(async () => {
+    // Check if there are rows without package numbers
+    const rowsNeedingNumbers = rows.filter((r) => !r.packageNumber || r.packageNumber === "");
+    if (rowsNeedingNumbers.length === 0) {
+      toast.info("All outputs already have package numbers assigned");
+      return;
+    }
+
+    // First, ensure all rows are saved
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    await performSave(rows);
+
+    setIsAssigningNumbers(true);
+    const result = await assignPackageNumbers(productionEntryId);
+    setIsAssigningNumbers(false);
+
+    if (!result.success) {
+      toast.error(result.error || "Failed to assign package numbers");
+      return;
+    }
+
+    if (result.assignedNumbers && result.assignedNumbers.length > 0) {
+      toast.success(`Assigned ${result.assignedNumbers.length} package number${result.assignedNumbers.length !== 1 ? "s" : ""}`);
+
+      // Reload the outputs to get the new package numbers
+      // We'll update the local state with the assigned numbers
+      // Since we don't have a refetch, we'll need to update based on what was assigned
+      setRows((prev) => {
+        let numberIndex = 0;
+        return prev.map((row) => {
+          if (!row.packageNumber || row.packageNumber === "") {
+            const newNumber = result.assignedNumbers?.[numberIndex];
+            numberIndex++;
+            return { ...row, packageNumber: newNumber || row.packageNumber };
+          }
+          return row;
+        });
+      });
+    } else {
+      toast.info("No package numbers needed to be assigned");
+    }
+  }, [rows, productionEntryId, performSave]);
 
   // ─── Row Change Handler ─────────────────────────────────────────────────────
 
@@ -374,7 +422,7 @@ export function ProductionOutputsSection({
               variant="outline"
               size="sm"
               onClick={() => setImportModalOpen(true)}
-              disabled={isPending}
+              disabled={isPending || isAssigningNumbers}
             >
               <ClipboardPaste className="h-3.5 w-3.5 mr-1.5" />
               Paste Import
@@ -384,10 +432,21 @@ export function ProductionOutputsSection({
                 variant="outline"
                 size="sm"
                 onClick={handleAutoGenerate}
-                disabled={isPending}
+                disabled={isPending || isAssigningNumbers}
               >
                 <Sparkles className="h-3.5 w-3.5 mr-1.5" />
                 Auto-Generate from Inputs
+              </Button>
+            )}
+            {rows.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleAssignNumbers}
+                disabled={isPending || isAssigningNumbers}
+              >
+                <Hash className="h-3.5 w-3.5 mr-1.5" />
+                {isAssigningNumbers ? "Assigning..." : "Assign Package Numbers"}
               </Button>
             )}
           </div>

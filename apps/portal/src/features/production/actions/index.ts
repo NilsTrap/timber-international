@@ -15,3 +15,4 @@ export { saveProductionOutputs } from "./saveProductionOutputs";
 export { validateProduction } from "./validateProduction";
 export { deleteProductionEntry } from "./deleteProductionEntry";
 export { revertFailedValidation } from "./revertFailedValidation";
+export { assignPackageNumbers } from "./assignPackageNumbers";
