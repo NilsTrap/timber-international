@@ -13,9 +13,9 @@ export default async function HomePage({ params }: Props) {
   setRequestLocale(locale);
 
   return (
-    <div className="-mt-16 md:-mt-20">
-      {/* Hero section - sticky at z-0, first journey stage will slide over it */}
-      <div className="stack-card h-screen w-full" style={{ zIndex: 0 }}>
+    <div className="journey-scroll-container -mt-16 md:-mt-20">
+      {/* Hero section - first snap point */}
+      <div className="journey-snap-page h-screen w-full">
         <HeroSection />
       </div>
       {/* Production Journey - 8 stages with stacking cards scroll effect */}

@@ -70,6 +70,9 @@ export function HeroSection() {
         <h1 className="font-heading text-5xl md:text-7xl lg:text-8xl text-white text-center max-w-4xl font-bold">
           {t("heroSlogan")}
         </h1>
+        <p className="mt-4 text-xl md:text-2xl lg:text-3xl text-white/80 text-center">
+          {t("heroSubtitle")}
+        </p>
       </div>
 
       {/* Scroll Indicator */}

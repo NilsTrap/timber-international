@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useReducedMotion } from "@timber/ui";
@@ -9,8 +9,14 @@ import { useReducedMotion } from "@timber/ui";
  * Gallery image type
  */
 export type GalleryImage = {
-  src: string;
+  /** Image source URL (optional - if not provided, shows colored background) */
+  src?: string;
+  /** Alt text for accessibility */
   alt: string;
+  /** Optional title to display on the slide */
+  title?: string;
+  /** Optional description to display below title */
+  description?: string;
 };
 
 /**
@@ -27,13 +33,9 @@ type HorizontalGalleryProps = {
   galleryLabel?: string;
 };
 
-// Gallery navigation constants
-const GAP_THRESHOLD_MS = 40; // Gap between events to detect new gesture
-const DELTA_THRESHOLD = 5; // Minimum delta to trigger image change
-const MIN_SWIPE_DISTANCE = 30; // Minimum swipe distance in pixels
-
 /**
- * HorizontalGallery - A swipeable horizontal image gallery for journey stages.
+ * HorizontalGallery - A swipeable horizontal image gallery using CSS scroll-snap.
+ * No JavaScript gesture handling - browser handles all scrolling natively.
  */
 export function HorizontalGallery({
   images,
@@ -46,210 +48,94 @@ export function HorizontalGallery({
   const [currentIndex, setCurrentIndex] = useState(0);
   const galleryRef = useRef<HTMLDivElement>(null);
 
-  // Track drag state
-  const dragState = useRef({
-    isDragging: false,
-    startX: 0,
-    currentX: 0,
-  });
-
-  // Gap detection for wheel events (same approach as vertical scrolling)
-  const lastWheelTimeRef = useRef<number>(0);
-  const hasMovedRef = useRef<boolean>(false);
-
-  // Add non-passive event listeners for wheel and touchmove to enable preventDefault
-  // Use capture phase to intercept before browser processes the gesture
+  // Track current slide via scroll position
   useEffect(() => {
-    const element = galleryRef.current;
-    if (!element) return;
+    const gallery = galleryRef.current;
+    if (!gallery) return;
 
-    const handleWheelNative = (e: WheelEvent) => {
-      // Check if event is within our gallery
-      if (!element.contains(e.target as Node)) return;
-
-      // Only handle horizontal scrolling
-      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-
-        const now = performance.now();
-        const timeSinceLastEvent = now - lastWheelTimeRef.current;
-        lastWheelTimeRef.current = now;
-
-        // Gap detected = new gesture, allow new image move
-        if (timeSinceLastEvent > GAP_THRESHOLD_MS) {
-          hasMovedRef.current = false;
-        }
-
-        // Move image on first significant delta of each gesture
-        if (!hasMovedRef.current && Math.abs(e.deltaX) > DELTA_THRESHOLD) {
-          hasMovedRef.current = true;
-          if (e.deltaX > 0) {
-            setCurrentIndex((prev) => Math.min(prev + 1, images.length - 1));
-          } else {
-            setCurrentIndex((prev) => Math.max(prev - 1, 0));
-          }
-        }
-      }
+    const handleScroll = () => {
+      const scrollLeft = gallery.scrollLeft;
+      const slideWidth = gallery.offsetWidth;
+      const newIndex = Math.round(scrollLeft / slideWidth);
+      setCurrentIndex(newIndex);
     };
 
-    const handleTouchMoveNative = (e: TouchEvent) => {
-      if (!element.contains(e.target as Node)) return;
-      if (!dragState.current.isDragging) return;
-      const touch = e.touches[0];
-      if (touch) {
-        const deltaX = Math.abs(touch.clientX - dragState.current.startX);
-        if (deltaX > 10) {
-          e.preventDefault();
-          e.stopPropagation();
-        }
-        dragState.current.currentX = touch.clientX;
-      }
-    };
-
-    // Add to document with capture phase to intercept early
-    document.addEventListener("wheel", handleWheelNative, { passive: false, capture: true });
-    document.addEventListener("touchmove", handleTouchMoveNative, { passive: false, capture: true });
-
-    return () => {
-      document.removeEventListener("wheel", handleWheelNative, { capture: true });
-      document.removeEventListener("touchmove", handleTouchMoveNative, { capture: true });
-    };
-  }, [images.length]);
-
-  const goToNext = useCallback(() => {
-    setCurrentIndex((prev) => Math.min(prev + 1, images.length - 1));
-  }, [images.length]);
-
-  const goToPrevious = useCallback(() => {
-    setCurrentIndex((prev) => Math.max(prev - 1, 0));
+    gallery.addEventListener("scroll", handleScroll, { passive: true });
+    return () => gallery.removeEventListener("scroll", handleScroll);
   }, []);
-
-  const goToIndex = useCallback((index: number) => {
-    setCurrentIndex(index);
-  }, []);
-
-  // Check if event target is a button
-  const isButtonClick = (target: EventTarget | null): boolean => {
-    if (!target || !(target instanceof HTMLElement)) return false;
-    return target.closest("button") !== null;
-  };
-
-  // Touch handlers for swipe (mobile)
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (isButtonClick(e.target)) return;
-    const touch = e.touches[0];
-    if (touch) {
-      dragState.current = {
-        isDragging: true,
-        startX: touch.clientX,
-        currentX: touch.clientX,
-      };
-    }
-  };
-
-  const handleTouchMove = () => {
-    // Touch move is handled by native event listener for preventDefault support
-  };
-
-  const handleTouchEnd = () => {
-    if (!dragState.current.isDragging) return;
-    const { startX, currentX } = dragState.current;
-    const distance = startX - currentX;
-
-    if (distance > MIN_SWIPE_DISTANCE) {
-      goToNext();
-    } else if (distance < -MIN_SWIPE_DISTANCE) {
-      goToPrevious();
-    }
-
-    dragState.current.isDragging = false;
-  };
-
-  // Mouse handlers for desktop drag/swipe
-  const handleMouseDown = (e: React.MouseEvent) => {
-    // Focus the gallery for keyboard navigation (preventScroll to avoid instant snap)
-    galleryRef.current?.focus({ preventScroll: true });
-
-    if (isButtonClick(e.target)) return;
-    // Don't preventDefault here - let click events work normally for smooth scroll
-    dragState.current = {
-      isDragging: true,
-      startX: e.clientX,
-      currentX: e.clientX,
-    };
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!dragState.current.isDragging) return;
-    // Only prevent default when actually dragging (moving)
-    const deltaX = Math.abs(e.clientX - dragState.current.startX);
-    if (deltaX > 5) {
-      e.preventDefault();
-    }
-    dragState.current.currentX = e.clientX;
-  };
-
-  const handleMouseUp = () => {
-    if (!dragState.current.isDragging) return;
-    const { startX, currentX } = dragState.current;
-    const distance = startX - currentX;
-
-    if (distance > MIN_SWIPE_DISTANCE) {
-      goToNext();
-    } else if (distance < -MIN_SWIPE_DISTANCE) {
-      goToPrevious();
-    }
-
-    dragState.current.isDragging = false;
-  };
-
-  const handleMouseLeave = () => {
-    dragState.current.isDragging = false;
-  };
 
   // Keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    const gallery = galleryRef.current;
+    if (!gallery) return;
+
+    const slideWidth = gallery.offsetWidth;
+
     if (e.key === "ArrowRight") {
       e.preventDefault();
       e.stopPropagation();
-      goToNext();
+      gallery.scrollBy({ left: slideWidth, behavior: reducedMotion ? "auto" : "smooth" });
     } else if (e.key === "ArrowLeft") {
       e.preventDefault();
       e.stopPropagation();
-      goToPrevious();
+      gallery.scrollBy({ left: -slideWidth, behavior: reducedMotion ? "auto" : "smooth" });
     }
   };
 
-  // Button click handlers with stopPropagation
-  const handlePrevClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    goToPrevious();
+  // Navigate to specific slide
+  const goToSlide = (index: number) => {
+    const gallery = galleryRef.current;
+    if (!gallery) return;
+
+    const slideWidth = gallery.offsetWidth;
+    gallery.scrollTo({ left: index * slideWidth, behavior: reducedMotion ? "auto" : "smooth" });
   };
 
-  const handleNextClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    goToNext();
-  };
-
-  const handleDotClick = (e: React.MouseEvent, index: number) => {
-    e.stopPropagation();
-    goToIndex(index);
-  };
-
-  // Don't render gallery controls if only 1 image
+  // Don't render gallery if only 1 image
   if (images.length <= 1) {
     const singleImage = images[0];
     if (!singleImage) return null;
     return (
-      <Image
-        src={singleImage.src}
-        alt={singleImage.alt}
-        fill
-        className="object-cover"
-        sizes="100vw"
-      />
+      <div className="relative w-full h-full">
+        {singleImage.src ? (
+          <Image
+            src={singleImage.src}
+            alt={singleImage.alt}
+            fill
+            className="object-cover"
+            sizes="100vw"
+          />
+        ) : (
+          <div
+            className="absolute inset-0 bg-gradient-to-br from-[#1B4332] to-[#2D3436]"
+            aria-hidden="true"
+          />
+        )}
+        {(singleImage.title || singleImage.description) && (
+          <>
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background:
+                  "linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 30%, transparent 60%)",
+              }}
+              aria-hidden="true"
+            />
+            <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center justify-end pb-24 px-6 text-center pointer-events-none">
+              {singleImage.title && (
+                <h3 className="font-heading text-2xl md:text-4xl lg:text-5xl font-bold text-white mb-3 drop-shadow-lg">
+                  {singleImage.title}
+                </h3>
+              )}
+              {singleImage.description && (
+                <p className="text-base md:text-lg text-white/80 max-w-2xl drop-shadow-md">
+                  {singleImage.description}
+                </p>
+              )}
+            </div>
+          </>
+        )}
+      </div>
     );
   }
 
@@ -258,49 +144,72 @@ export function HorizontalGallery({
 
   return (
     <div
-      ref={galleryRef}
+      className={`relative w-full h-full ${className}`}
       role="region"
       aria-roledescription="carousel"
       aria-label={galleryLabel}
-      tabIndex={0}
-      onKeyDown={handleKeyDown}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseLeave}
-      style={{ touchAction: "pan-y", overscrollBehaviorX: "contain" }}
-      className={`relative w-full h-full outline-none focus-visible:ring-4 focus-visible:ring-white/50 focus-visible:ring-inset cursor-grab active:cursor-grabbing ${className}`}
     >
-      {/* Images container - sliding carousel */}
-      <div className="relative w-full h-full overflow-hidden select-none">
-        <div
-          className={`flex h-full ${
-            reducedMotion ? "" : "transition-transform duration-500 ease-out"
-          }`}
-          style={{ transform: `translateX(-${currentIndex * 100}%)` }}
-        >
-          {images.map((image, index) => (
-            <div
-              key={index}
-              className="relative w-full h-full flex-shrink-0"
-              aria-hidden={index !== currentIndex}
-            >
+      {/* Scrollable gallery container - CSS scroll-snap handles everything */}
+      <div
+        ref={galleryRef}
+        tabIndex={0}
+        onKeyDown={handleKeyDown}
+        className="gallery-scroll-container flex w-full h-full outline-none focus-visible:ring-4 focus-visible:ring-white/50 focus-visible:ring-inset"
+      >
+        {images.map((image, index) => (
+          <div
+            key={index}
+            className="gallery-snap-slide relative"
+            aria-hidden={index !== currentIndex}
+          >
+            {/* Background: Image or colored fallback */}
+            {image.src ? (
               <Image
                 src={image.src}
                 alt={image.alt}
                 fill
-                className="object-cover pointer-events-none"
+                className="object-cover"
                 sizes="100vw"
                 priority={index === 0}
                 unoptimized={image.src.startsWith("http")}
                 draggable={false}
               />
-            </div>
-          ))}
-        </div>
+            ) : (
+              <div
+                className="absolute inset-0 bg-gradient-to-br from-[#1B4332] to-[#2D3436]"
+                aria-hidden="true"
+              />
+            )}
+
+            {/* Gradient overlay for text readability */}
+            {(image.title || image.description) && (
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  background:
+                    "linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 30%, transparent 60%)",
+                }}
+                aria-hidden="true"
+              />
+            )}
+
+            {/* Title and description overlay */}
+            {(image.title || image.description) && (
+              <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center justify-end pb-24 px-6 text-center pointer-events-none">
+                {image.title && (
+                  <h3 className="font-heading text-2xl md:text-4xl lg:text-5xl font-bold text-white mb-3 drop-shadow-lg">
+                    {image.title}
+                  </h3>
+                )}
+                {image.description && (
+                  <p className="text-base md:text-lg text-white/80 max-w-2xl drop-shadow-md">
+                    {image.description}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
       </div>
 
       {/* Screen reader announcement */}
@@ -312,7 +221,7 @@ export function HorizontalGallery({
       {!isAtStart && (
         <button
           type="button"
-          onClick={handlePrevClick}
+          onClick={() => goToSlide(currentIndex - 1)}
           aria-label={t("journey.previousImage")}
           className={`absolute left-4 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-black/50 hover:bg-black/70 text-white cursor-pointer ${
             reducedMotion ? "" : "transition-all duration-200 hover:scale-110"
@@ -340,7 +249,7 @@ export function HorizontalGallery({
       {!isAtEnd && (
         <button
           type="button"
-          onClick={handleNextClick}
+          onClick={() => goToSlide(currentIndex + 1)}
           aria-label={t("journey.nextImage")}
           className={`absolute right-4 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-black/50 hover:bg-black/70 text-white cursor-pointer ${
             reducedMotion ? "" : "transition-all duration-200 hover:scale-110"
@@ -377,7 +286,7 @@ export function HorizontalGallery({
           <button
             key={index}
             type="button"
-            onClick={(e) => handleDotClick(e, index)}
+            onClick={() => goToSlide(index)}
             aria-label={t("journey.goToImage", { number: index + 1 })}
             aria-current={index === currentIndex ? "true" : undefined}
             className={`w-2.5 h-2.5 rounded-full cursor-pointer ${
